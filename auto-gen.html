@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <br>Siteswap: <input type="text" type="number" id="siteswapInput" onkeyup="getInput()">
+    <br>Number of throws: <input type="text" type="number" id="throwsInput" onkeyup="getInput()">
+    <br>Line Width: <input type="text" type="number" id="lineWidthInput" onkeyup="getInput()">
+    <br>Separator Width: <input type="text" type="number" id="separatorWidthInput" onkeyup="getInput()">
+    <br><input type="checkbox" id="showLastCatchesCheck" onclick="getInput()">Show final catches 
+    <br><input type="checkbox" id="showValueAtThrowCheck" onclick="getInput()">Show value at throw
+    <br><input type="checkbox" id="showValueAtPeakCheck" onclick="getInput()">Show value at peak
+    <br><input type="checkbox" id="passingCheck" onclick="getInput()">Passing pattern
+    <br><input type="checkbox" id="unidirectionalCheck" onclick="getInput()">Unidirectional
+    <br>Background color: <input type="text" id="backgroundColorInput" onkeyup="getInput()">
+    <br>Line color: <input type="text" id="lineColorInput" onkeyup="getInput()">
+    <br>Separator color: <input type="text" id="separatorColorInput" onkeyup="getInput()">
+    <br>Center line color: <input type="text" id="centerLineColorInput" onkeyup="getInput()">
+    <br><input type="checkbox" id="showCenterLineCheck" onclick="getInput()">Show center line
+    <br>Increment between throws: <input type="text" id="widthIncrementInput" onkeyup="getInput()">
+
+    <div id="siteswapContainer"></div>
+    <input type="button" id="downloadButton" onclick="download()" value="Download SVG"/>
+
+    <br><br>
+
+    <div id="ladderContainer"></div>
+
+    <script src="generator.js"></script>
+
+</body>
+</html>
