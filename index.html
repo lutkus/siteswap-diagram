@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="bootstrap-5.0.0-beta3-dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <title>Siteswap Diagram Generator</title>
+</head>
+
+<body>
+    <div class="container-fluid">
+
+
+
+
+        <h2>Siteswap Diagram Generator</h2>
+        <p>This is a super-simple utility for generating vector files (SVG format) to represent siteswaps. At present,
+            no validation of the siteswap is performed. Only vanilla asynchronous siteswaps with max throwheight 9 are
+            currently supported. If you want a better tool for siteswap visualization, visit <a
+                href="https://juggling.graphics/">juggling.graphics</a></a></p>
+
+
+
+        <div class="row">
+            <div class="col">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="siteswapInputLabel">Siteswap</span>
+                    <input type="number" class="form-control" aria-describedby="siteswapInputLabel" id="siteswapInput"
+                        onkeyup="getInput()" onclick="getInput()">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="throwsInputLabel">Number of throws to display</span>
+                    <input type="number" class="form-control" aria-describedby="throwsInputLabel" id="throwsInput"
+                        onkeyup="getInput()" onclick="getInput()">
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="widthIncrementInputLabel">Visual space between throws</span>
+                    <input type="number" class="form-control" aria-describedby="widthIncrementInputLabel"
+                        id="widthIncrementInput" onkeyup="getInput()" onclick="getInput()">
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="form-check mb-3" onclick="getInput()">
+                    <input class="form-check-input" type="checkbox" value="" id="showLastCatchesCheck">
+                    <label class="form-check-label" for="showLastCatchesCheck">
+                        Show final catches
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="lineWidthInputLabel">Line thickness</span>
+                    <input type="number" class="form-control" aria-describedby="lineWidthInputLabel" id="lineWidthInput"
+                        onkeyup="getInput()" onclick="getInput()">
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="separatorWidthInputLabel">Separator thickness</span>
+                    <input type="number" class="form-control" aria-describedby="separatorWidthInputLabel"
+                        id="separatorWidthInput" onkeyup="getInput()" onclick="getInput()">
+                </div>
+            </div>
+            <div class="col-sm">
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="lineColorInputLabel">Line color</span>
+                    <input type="text" class="form-control" aria-describedby="lineColorInputLabel" id="lineColorInput"
+                        onkeyup="getInput()">
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="separatorColorInputLabel">Separator color</span>
+                    <input type="text" class="form-control" aria-describedby="separatorColorInputLabel"
+                        id="separatorColorInput" onkeyup="getInput()">
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="backgroundColorInputLabel">Background color</span>
+                    <input type="text" class="form-control" aria-describedby="backgroundColorInputLabel"
+                        id="backgroundColorInput" onkeyup="getInput()">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm">
+                <div class="form-check mb-3" onclick="getInput()">
+                    <input class="form-check-input" type="checkbox" value="" id="showCenterLineCheck">
+                    <label class="form-check-label" for="showCenterLineCheck">
+                        Show center line
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="centerLineWidthInputLabel">Center line thickness</span>
+                    <input type="number" class="form-control" aria-describedby="centerLineWidthInputLabel"
+                        id="centerLineWidthInput" onkeyup="getInput()" onclick="getInput()">
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="centerLineColorInputLabel">Center line color</span>
+                    <input type="text" class="form-control" aria-describedby="centerLineColorInputLabel"
+                        id="centerLineColorInput" onkeyup="getInput()">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm">
+                <div class="form-check mb-3" onclick="getInput()">
+                    <input class="form-check-input" type="checkbox" value="" id="showValueAtThrowCheck">
+                    <label class="form-check-label" for="showValueAtThrowCheck">
+                        Show value at throw
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="form-check mb-3" onclick="getInput()">
+                    <input class="form-check-input" type="checkbox" value="" id="showOnlyFirstThrowsCheck">
+                    <label class="form-check-label" for="showOnlyFirstThrowsCheck">
+                        Only show initial throws
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="form-check mb-3" onclick="getInput()">
+                    <input class="form-check-input" type="checkbox" value="" id="showValueAtPeakCheck">
+                    <label class="form-check-label" for="showValueAtPeakCheck">
+                        Show value at peak
+                    </label>
+                </div>
+            </div>
+            <div class="col">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="valueSizeInputLabel">Value radius</span>
+                    <input type="number" class="form-control" aria-describedby="valueSizeInputLabel"
+                        id="valueSizeInput" onkeyup="getInput()" onclick="getInput()">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="valueBackgroundColorInputLabel">Value background color</span>
+                    <input type="text" class="form-control" aria-describedby="valueBackgroundColorInputLabel" id="valueBackgroundColorInput"
+                        onkeyup="getInput()">
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="valueOutlineColorInputLabel">Value outline color</span>
+                    <input type="text" class="form-control" aria-describedby="valueOutlineColorInputLabel"
+                        id="valueOutlineColorInput" onkeyup="getInput()">
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="valueTextColorInputLabel">Value text color</span>
+                    <input type="text" class="form-control" aria-describedby="valueTextColorInputLabel"
+                        id="valueTextColorInput" onkeyup="getInput()">
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="valueTextSizeInputLabel">Value text size</span>
+                    <input type="number" class="form-control" aria-describedby="valueTextSizeInputLabel"
+                        id="valueTextSizeInput" onkeyup="getInput()">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm">
+                <div class="form-check mb-3" onclick="getInput()">
+                    <input class="form-check-input" type="checkbox" value="" id="passingCheck">
+                    <label class="form-check-label" for="passingCheck">
+                        Passing pattern
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="form-check mb-3" onclick="getInput()">
+                    <input class="form-check-input" type="checkbox" value="" id="unidirectionalCheck">
+                    <label class="form-check-label" for="unidirectionalCheck">
+                        Unidirectional
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm">
+
+            </div>
+        </div>
+
+        <div id="siteswapContainer"></div>
+        <input type="button" class="btn btn-primary" id="downloadButton" onclick="download('siteswap')" value="Download Siteswap Diagram SVG" />
+
+        <br><br>
+
+        <div id="ladderContainer"></div>
+        <input type="button" class="btn btn-primary" id="downloadButton" onclick="download('ladder')" value="Download Ladder Diagram SVG" />
+
+        <div class="container"></div>
+
+
+        <script src="generator.js"></script>
+        <script src="bootstrap-5.0.0-beta3-dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
