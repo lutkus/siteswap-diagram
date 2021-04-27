@@ -4,16 +4,23 @@ let throws = 30; // The number of throws to show
 let lineWidth = 15; // Thickness of the line showing the pattern
 let lineColor = "black"; 
 let backgroundColor = "white";
-let separatorColor = "white";
+// let separatorColor = "white";
 let centerLineColor = "blue";
+let centerLineWidth = 10;
 let separatorWidth = 10; // How much thicker the separator line is than the pattern line
 let showLastCatches = 0; // 1=show last catches; 0=end at last throw
-let showValueAtPeak = true;
+let showValueAtPeak = false;
 let showValueAtThrow = false;
 let showCenterLine = false;
 let passing = true;
 let unidirectional = false;
 let widthIncrement = 100;
+let valueSize = 15;
+let valueBackgroundColor = "white";
+let valueOutlineColor = "black";
+let valueTextColor = "black";
+let valueTextSize = 20;
+let showOnlyFirstThrows = false;
 
 setInput();
 refresh();
@@ -21,9 +28,6 @@ refresh();
 function refresh() {
 
 let pattern = siteswap;
-// for (let i=1;i<throws;i++) {
-//     pattern = pattern.concat(siteswap);
-// }
 while (pattern.length < throws) {
     pattern = pattern.concat(siteswap);
 }
@@ -41,7 +45,7 @@ svg.setAttribute("style","background-color:"+backgroundColor);
 if (showCenterLine) {
     let lineCenter = document.createElementNS("http://www.w3.org/2000/svg", "line"); 
     lineCenter.setAttribute("stroke",centerLineColor);
-    lineCenter.setAttribute("stroke-width",lineWidth);
+    lineCenter.setAttribute("stroke-width",centerLineWidth);
     lineCenter.setAttribute("x1",widthIncrement);
     lineCenter.setAttribute("y1",500);
     lineCenter.setAttribute("x2",+widthIncrement + +widthIncrement * pattern.length + pattern[pattern.length-1]);
@@ -93,12 +97,19 @@ for (let i=0; i<pattern.length; i++) {
     const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+endY;
 
     let separator = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-    separator.setAttribute("stroke",separatorColor);
+    separator.setAttribute("stroke",backgroundColor);
     separator.setAttribute("stroke-width",+lineWidth + +separatorWidth);
     separator.setAttribute("stroke-linecap","butt");
-    separator.setAttribute("fill",separatorColor);
+    separator.setAttribute("fill",backgroundColor);
     separator.setAttribute("fill-opacity",0);
     separator.setAttribute("points", points);
+
+    // This neatens the overlap between throws. It would be better to actually calculate the length, and
+    // subtract the polyline's width from each side. Instead of doing that math, I just chop off 5% from the start and end.
+    separator.setAttribute("pathLength","100");
+    separator.setAttribute("stroke-dasharray","90 10");
+    separator.setAttribute("stroke-dashoffset","-5");
+
     svg.appendChild(separator);
 
     let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
@@ -115,38 +126,48 @@ for (let i=0; i<pattern.length; i++) {
         let label = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         label.setAttribute("cx",peakX);
         label.setAttribute("cy",peakY);
-        label.setAttribute("r",(+lineWidth + +separatorWidth)/2);
-        label.setAttribute("stroke",lineColor);
-        label.setAttribute("stroke-width","1");
-        label.setAttribute("fill","white")        
+        label.setAttribute("r",valueSize);
+        label.setAttribute("stroke",valueOutlineColor);
+        label.setAttribute("stroke-width","2");
+        label.setAttribute("fill",valueBackgroundColor)        
         svg.appendChild(label);
 
         let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
         text.setAttribute("x",peakX);
         text.setAttribute("y",peakY);
-        text.setAttribute("class","small");
+        text.setAttribute("font-size",valueTextSize);
+        text.setAttribute("fill",valueTextColor);
         text.setAttribute("text-anchor","middle");
         text.setAttribute("alignment-baseline","middle");
         text.textContent = pattern[i];
         svg.appendChild(text);
     }
 
-    if (showValueAtThrow) {
+    let firstThrow = true;
+    if (showOnlyFirstThrows) {
+        for (let j=i-1; j>=0; j--) {
+            if (pattern[j] == i-j) {
+                firstThrow = false;
+            }
+        }
+    }
+    if (showValueAtThrow && firstThrow) {
         let label = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         label.setAttribute("cx",startX);
         label.setAttribute("cy",startY);
-        label.setAttribute("r",(+lineWidth + +separatorWidth)/2);
-        label.setAttribute("stroke",lineColor);
-        label.setAttribute("stroke-width","1");
-        label.setAttribute("fill","white")        
+        label.setAttribute("r",valueSize);
+        label.setAttribute("stroke",valueOutlineColor);
+        label.setAttribute("stroke-width","2");
+        label.setAttribute("fill",valueBackgroundColor)        
         svg.appendChild(label);
 
         let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
         text.setAttribute("x",startX);
         text.setAttribute("y",startY);
-        text.setAttribute("class","small");
         text.setAttribute("text-anchor","middle");
         text.setAttribute("alignment-baseline","middle");
+        text.setAttribute("font-size",valueTextSize);
+        text.setAttribute("fill",valueTextColor);
         text.textContent = pattern[i];
         svg.appendChild(text);
     }    
@@ -168,7 +189,7 @@ const centerPoint = (+ladderWidth/2) + 50;
 if (showCenterLine) {
     let ladderCenterLine = document.createElementNS("http://www.w3.org/2000/svg", "line"); 
     ladderCenterLine.setAttribute("stroke",centerLineColor);
-    ladderCenterLine.setAttribute("stroke-width",lineWidth);
+    ladderCenterLine.setAttribute("stroke-width",centerLineWidth);
     ladderCenterLine.setAttribute("x1",widthIncrement);
     ladderCenterLine.setAttribute("y1",centerPoint);
     ladderCenterLine.setAttribute("x2",+widthIncrement + +widthIncrement * pattern.length + pattern[pattern.length-1]);
@@ -184,9 +205,34 @@ for (let i=0; i<pattern.length; i++) {
     const startY = 50 + (+ladderWidth * side);
     const endX = startX + (+widthIncrement * pattern[i]);
     const peakX = startX + ((+widthIncrement * pattern[i]) / 2);
-    const peakY = centerPoint;
+    let peakY = centerPoint;
+    const throwHeight = (+ladderWidth / 20)*pattern[i];
+    if (side) {
+        peakY = centerPoint - throwHeight;
+    } else {
+        peakY = centerPoint + throwHeight;
+    }
+    // const peakY = centerPoint;
 
     if (pattern[i] % 2) {
+        let separator = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        separator.setAttribute("stroke",backgroundColor);
+        separator.setAttribute("stroke-width",+lineWidth + +separatorWidth);
+        separator.setAttribute("stroke-linecap","butt");
+        separator.setAttribute("fill",backgroundColor);
+        separator.setAttribute("fill-opacity",0);
+        separator.setAttribute("x1", startX);
+        separator.setAttribute("y1", startY);
+        separator.setAttribute("x2", endX);
+
+            // This neatens the overlap between throws. It would be better to actually calculate the length, and
+        // subtract the polyline's width from each side. Instead of doing that math, I just chop off 5% from the start and end.
+        separator.setAttribute("pathLength","100");
+        separator.setAttribute("stroke-dasharray","90 10");
+        separator.setAttribute("stroke-dashoffset","-5")
+
+        svg.appendChild(separator);
+
         let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         line.setAttribute("stroke",lineColor);
         line.setAttribute("stroke-width",lineWidth);
@@ -201,27 +247,42 @@ for (let i=0; i<pattern.length; i++) {
             newSide = 1;
         }
         line.setAttribute("y2",50 + (+ladderWidth * newSide));
+        separator.setAttribute("y2",50 + (+ladderWidth * newSide));
+        ladderSvg.appendChild(separator);
         ladderSvg.appendChild(line);
     } else {
-        let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-        polyline.setAttribute("stroke",lineColor);
-        polyline.setAttribute("stroke-width",lineWidth);
-        polyline.setAttribute("stroke-linecap","round");
-        polyline.setAttribute("stroke-linejoin","round");
-        polyline.setAttribute("fill",backgroundColor);
-        polyline.setAttribute("fill-opacity",0);
-        var newSide = 0;
-        if (side) {
-            newSide = 0;
-        } else {
-            newSide = 1;
-        }
-        polyline.setAttribute("y2",50 + (+ladderWidth * newSide));
+        // let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        // polyline.setAttribute("stroke",lineColor);
+        // polyline.setAttribute("stroke-width",lineWidth);
+        // polyline.setAttribute("stroke-linecap","round");
+        // polyline.setAttribute("stroke-linejoin","round");
+        // polyline.setAttribute("fill",backgroundColor);
+        // polyline.setAttribute("fill-opacity",0);
+        // var newSide = 0;
+        // if (side) {
+        //     newSide = 0;
+        // } else {
+        //     newSide = 1;
+        // }
+        // polyline.setAttribute("y2",50 + (+ladderWidth * newSide));
         
-        const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+startY;
-        polyline.setAttribute("points", points);;
+        // const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+startY;
+        // polyline.setAttribute("points", points);;
         // ladderSvg.appendChild(polyline);      
-        
+       
+        let separator = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        separator.setAttribute("stroke",backgroundColor);
+        separator.setAttribute("stroke-width",+lineWidth + +separatorWidth);
+        separator.setAttribute("stroke-linecap","butt");
+        separator.setAttribute("fill",backgroundColor);
+        separator.setAttribute("fill-opacity",0);
+
+        // This neatens the overlap between throws. It would be better to actually calculate the length, and
+        // subtract the polyline's width from each side. Instead of doing that math, I just chop off 5% from the start and end.
+        separator.setAttribute("pathLength","100");
+        separator.setAttribute("stroke-dasharray","90 10");
+        separator.setAttribute("stroke-dashoffset","-5")        
+
         let path = document.createElementNS("http://www.w3.org/2000/svg", "path"); 
         path.setAttribute("stroke",lineColor);
         path.setAttribute("stroke-width",lineWidth);
@@ -231,24 +292,35 @@ for (let i=0; i<pattern.length; i++) {
         path.setAttribute("fill-opacity",0);
         const d = "M"+startX+","+startY+" Q"+peakX+","+peakY+" "+endX+","+startY;
         path.setAttribute("d",d);
+        separator.setAttribute("d",d);
+        ladderSvg.appendChild(separator);
 
         ladderSvg.appendChild(path);
     }
 
-    if (showValueAtThrow) {
+    let firstThrow = true;
+    if (showOnlyFirstThrows) {
+        for (let j=i-1; j>=0; j--) {
+            if (pattern[j] == i-j) {
+                firstThrow = false;
+            }
+        }
+    }
+    if (showValueAtThrow && firstThrow) {
         let label = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         label.setAttribute("cx",startX);
         label.setAttribute("cy",startY);
-        label.setAttribute("r",(+lineWidth + +separatorWidth)/2);
-        label.setAttribute("stroke",lineColor);
-        label.setAttribute("stroke-width","1");
-        label.setAttribute("fill","white")        
+        label.setAttribute("r",valueSize);
+        label.setAttribute("stroke",valueOutlineColor);
+        label.setAttribute("stroke-width","2");
+        label.setAttribute("fill",valueBackgroundColor)        
         ladderSvg.appendChild(label);
 
         let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
         text.setAttribute("x",startX);
         text.setAttribute("y",startY);
-        text.setAttribute("class","small");
+        text.setAttribute("font-size",valueTextSize);
+        text.setAttribute("fill",valueTextColor);
         text.setAttribute("text-anchor","middle");
         text.setAttribute("alignment-baseline","middle");
         text.textContent = pattern[i];
@@ -257,7 +329,6 @@ for (let i=0; i<pattern.length; i++) {
 
 }
 ladderContainer.appendChild(ladderSvg);
-console.log(ladderSvg)
 }
 
 function getInput() {
@@ -270,6 +341,7 @@ function getInput() {
     showValueAtThrow = document.getElementById("showValueAtThrowCheck").checked; 
     showCenterLine = document.getElementById("showCenterLineCheck").checked;
     lineWidth = document.getElementById("lineWidthInput").value;
+    centerLineWidth = document.getElementById("centerLineWidthInput").value;
     separatorWidth = document.getElementById("separatorWidthInput").value;
     throws = document.getElementById("throwsInput").value;
     siteswap = Array.from(document.getElementById("siteswapInput").value);
@@ -279,11 +351,17 @@ function getInput() {
         passing = false;
         document.getElementById("passingCheck").checked = passing; 
     }
+    showOnlyFirstThrows = document.getElementById("showOnlyFirstThrowsCheck").checked;
     backgroundColor = document.getElementById("backgroundColorInput").value;
     lineColor = document.getElementById("lineColorInput").value;
     centerLineColor = document.getElementById("centerLineColorInput").value;
-    separatorColor = document.getElementById("separatorColorInput").value;
+    // separatorColor = document.getElementById("separatorColorInput").value;
     widthIncrement = document.getElementById("widthIncrementInput").value;
+    valueSize = document.getElementById("valueSizeInput").value;
+    valueBackgroundColor = document.getElementById("valueBackgroundColorInput").value;
+    valueOutlineColor = document.getElementById("valueOutlineColorInput").value;
+    valueTextColor = document.getElementById("valueTextColorInput").value;
+    valueTextSize = document.getElementById("valueTextSizeInput").value;
     refresh();
   }
 
@@ -294,23 +372,30 @@ function setInput() {
     document.getElementById("showCenterLineCheck").checked = showCenterLine; 
     document.getElementById("passingCheck").checked = passing; 
     document.getElementById("unidirectionalCheck").checked = unidirectional; 
+    document.getElementById("showOnlyFirstThrowsCheck").checked = showOnlyFirstThrows; 
 
     document.getElementById("lineWidthInput").value = lineWidth;
+    document.getElementById("centerLineWidthInput").value = centerLineWidth;
     document.getElementById("separatorWidthInput").value = separatorWidth;
     document.getElementById("throwsInput").value = throws;
     document.getElementById("siteswapInput").value = siteswap.join('');
     document.getElementById("backgroundColorInput").value = backgroundColor;
     document.getElementById("lineColorInput").value = lineColor;
     document.getElementById("centerLineColorInput").value = centerLineColor;
-    document.getElementById("separatorColorInput").value = separatorColor;
+    // document.getElementById("separatorColorInput").value = separatorColor;
     document.getElementById("widthIncrementInput").value = widthIncrement;
+    document.getElementById("valueSizeInput").value = valueSize;
+    document.getElementById("valueBackgroundColorInput").value = valueBackgroundColor;
+    document.getElementById("valueOutlineColorInput").value = valueOutlineColor;
+    document.getElementById("valueTextColorInput").value = valueTextColor;
+    document.getElementById("valueTextSizeInput").value = valueTextSize;
 }
 
-function download() {
+function download(elementId) {
     var element = document.createElement('a');
-    const text = document.getElementById("siteswapContainer").innerHTML;
+    const text = document.getElementById(elementId+"Container").innerHTML;
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', 'siteswap'+siteswap.join('')+'.svg');
+    element.setAttribute('download', elementId+siteswap.join('')+'.svg');
 
     element.style.display = 'none';
     document.body.appendChild(element);
