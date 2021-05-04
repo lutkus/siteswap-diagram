@@ -12,8 +12,9 @@ let showLastCatches = 0; // 1=show last catches; 0=end at last throw
 let showValueAtPeak = false;
 let showValueAtThrow = false;
 let showCenterLine = false;
-let passing = true;
+let catching = false;
 let unidirectional = false;
+let invert = false;
 let widthIncrement = 100;
 let valueSize = 15;
 let valueBackgroundColor = "white";
@@ -62,13 +63,16 @@ for (let i=0; i<pattern.length; i++) {
             direction = -1;
         }
     }
-    let pass = 1;
-    if (passing) {
+    let catchSide = 1;
+    if (catching) {
         if (pattern[i] % 2) {
-            pass = 1;
+            catchSide = 1;
         } else {
-            pass = -1;
+            catchSide = -1;
         }
+    }
+    if (invert) {
+        direction = direction * (-1);
     }
 
     const centerPoint = 500;
@@ -77,7 +81,7 @@ for (let i=0; i<pattern.length; i++) {
     const endX = startX + (+widthIncrement * pattern[i]);
     const endY = centerPoint;
     const peakX = startX + ((+widthIncrement * pattern[i]) / 2);
-    const peakY = centerPoint + pass*direction*(100 * pattern[i] / 2);
+    const peakY = centerPoint + catchSide*direction*(100 * pattern[i] / 2);
 
 
     // let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -198,7 +202,10 @@ if (showCenterLine) {
 }
 
 for (let i=0; i<pattern.length; i++) {
-    const side = (i % 2);
+    let side = (i % 2);
+    if (invert) {
+        side = (i+1) % 2;
+    }
     const crosses = (pattern[i] % 2);
 
     const startX = +widthIncrement + ( +widthIncrement * i);
@@ -345,12 +352,13 @@ function getInput() {
     separatorWidth = document.getElementById("separatorWidthInput").value;
     throws = document.getElementById("throwsInput").value;
     siteswap = Array.from(document.getElementById("siteswapInput").value);
-    passing = document.getElementById("passingCheck").checked;
+    catching = document.getElementById("catchingCheck").checked;
     unidirectional = document.getElementById("unidirectionalCheck").checked; 
     if (unidirectional) {
-        passing = false;
-        document.getElementById("passingCheck").checked = passing; 
+        catching = false;
+        document.getElementById("catchingCheck").checked = catching; 
     }
+    invert = document.getElementById("invertCheck").checked; 
     showOnlyFirstThrows = document.getElementById("showOnlyFirstThrowsCheck").checked;
     backgroundColor = document.getElementById("backgroundColorInput").value;
     lineColor = document.getElementById("lineColorInput").value;
@@ -370,8 +378,9 @@ function setInput() {
     document.getElementById("showLastCatchesCheck").checked = showLastCatches;
     document.getElementById("showValueAtThrowCheck").checked = showValueAtThrow; 
     document.getElementById("showCenterLineCheck").checked = showCenterLine; 
-    document.getElementById("passingCheck").checked = passing; 
+    document.getElementById("catchingCheck").checked = catching; 
     document.getElementById("unidirectionalCheck").checked = unidirectional; 
+    document.getElementById("invertCheck").checked = invert; 
     document.getElementById("showOnlyFirstThrowsCheck").checked = showOnlyFirstThrows; 
 
     document.getElementById("lineWidthInput").value = lineWidth;
