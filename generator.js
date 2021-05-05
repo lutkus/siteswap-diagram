@@ -22,6 +22,7 @@ let valueOutlineColor = "black";
 let valueTextColor = "black";
 let valueTextSize = 20;
 let showOnlyFirstThrows = false;
+let pointy = false;
 
 setInput();
 refresh();
@@ -117,6 +118,24 @@ for (let i=0; i<pattern.length; i++) {
     svg.appendChild(separator);
 
     let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+
+    // dark = right, non-dark = left
+    // blue = pass, orange = self
+    // let darkness = "";
+    // let color = "";
+    // if (pattern[i]%2) {
+    //     color = "blue";
+    // } else {
+    //     color = "orange";
+    // }
+    // if (i%4 == 0) {
+    //     darkness = "dark";
+    // }
+    // if ((i+3)%4 == 0) {
+    //     darkness = "dark";
+    // }
+    // polyline.setAttribute("stroke",darkness+color);
+
     polyline.setAttribute("stroke",lineColor);
     polyline.setAttribute("stroke-width",lineWidth);
     polyline.setAttribute("stroke-linecap","round");
@@ -212,14 +231,13 @@ for (let i=0; i<pattern.length; i++) {
     const startY = 50 + (+ladderWidth * side);
     const endX = startX + (+widthIncrement * pattern[i]);
     const peakX = startX + ((+widthIncrement * pattern[i]) / 2);
-    let peakY = centerPoint;
+    // let peakY = centerPoint;
     const throwHeight = (+ladderWidth / 20)*pattern[i];
     if (side) {
         peakY = centerPoint - throwHeight;
     } else {
         peakY = centerPoint + throwHeight;
     }
-    // const peakY = centerPoint;
 
     if (pattern[i] % 2) {
         let separator = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -232,11 +250,11 @@ for (let i=0; i<pattern.length; i++) {
         separator.setAttribute("y1", startY);
         separator.setAttribute("x2", endX);
 
-            // This neatens the overlap between throws. It would be better to actually calculate the length, and
+        // This neatens the overlap between throws. It would be better to actually calculate the length, and
         // subtract the polyline's width from each side. Instead of doing that math, I just chop off 5% from the start and end.
         separator.setAttribute("pathLength","100");
         separator.setAttribute("stroke-dasharray","90 10");
-        separator.setAttribute("stroke-dashoffset","-5")
+        separator.setAttribute("stroke-dashoffset","-5");
 
         svg.appendChild(separator);
 
@@ -258,51 +276,74 @@ for (let i=0; i<pattern.length; i++) {
         ladderSvg.appendChild(separator);
         ladderSvg.appendChild(line);
     } else {
-        // let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-        // polyline.setAttribute("stroke",lineColor);
-        // polyline.setAttribute("stroke-width",lineWidth);
-        // polyline.setAttribute("stroke-linecap","round");
-        // polyline.setAttribute("stroke-linejoin","round");
-        // polyline.setAttribute("fill",backgroundColor);
-        // polyline.setAttribute("fill-opacity",0);
-        // var newSide = 0;
-        // if (side) {
-        //     newSide = 0;
-        // } else {
-        //     newSide = 1;
-        // }
-        // polyline.setAttribute("y2",50 + (+ladderWidth * newSide));
-        
-        // const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+startY;
-        // polyline.setAttribute("points", points);;
-        // ladderSvg.appendChild(polyline);      
-       
-        let separator = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        separator.setAttribute("stroke",backgroundColor);
-        separator.setAttribute("stroke-width",+lineWidth + +separatorWidth);
-        separator.setAttribute("stroke-linecap","butt");
-        separator.setAttribute("fill",backgroundColor);
-        separator.setAttribute("fill-opacity",0);
 
-        // This neatens the overlap between throws. It would be better to actually calculate the length, and
-        // subtract the polyline's width from each side. Instead of doing that math, I just chop off 5% from the start and end.
-        separator.setAttribute("pathLength","100");
-        separator.setAttribute("stroke-dasharray","90 10");
-        separator.setAttribute("stroke-dashoffset","-5")        
+        if (pointy) {
 
-        let path = document.createElementNS("http://www.w3.org/2000/svg", "path"); 
-        path.setAttribute("stroke",lineColor);
-        path.setAttribute("stroke-width",lineWidth);
-        path.setAttribute("stroke-linecap","round");
-        path.setAttribute("stroke-linejoin","round");
-        path.setAttribute("fill",backgroundColor);
-        path.setAttribute("fill-opacity",0);
-        const d = "M"+startX+","+startY+" Q"+peakX+","+peakY+" "+endX+","+startY;
-        path.setAttribute("d",d);
-        separator.setAttribute("d",d);
-        ladderSvg.appendChild(separator);
+            var newSide = 0;
+            if (side) {
+                newSide = 0;
+            } else {
+                newSide = 1;
+            }
+            if (side) {
+                // peakY = centerPoint - (5*pattern[i]);
+                peakY = startY - (18*pattern[i]) - 50;
+            } else {
+                peakY = startY + (18*pattern[i]) + 50;
+            }
+            const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+startY;
+            let separator = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            separator.setAttribute("stroke",backgroundColor);
+            separator.setAttribute("stroke-width",+lineWidth + +separatorWidth);
+            separator.setAttribute("stroke-linecap","round");
+            separator.setAttribute("stroke-linejoin","round");
+            separator.setAttribute("fill",backgroundColor);
+            separator.setAttribute("fill-opacity",0);
+            separator.setAttribute("points", points);
+            // This neatens the overlap between throws. It would be better to actually calculate the length, and
+            // subtract the polyline's width from each side. Instead of doing that math, I just chop off 5% from the start and end.
+            separator.setAttribute("pathLength","100");
+            separator.setAttribute("stroke-dasharray","80 20");
+            separator.setAttribute("stroke-dashoffset","-10");
+            ladderSvg.appendChild(separator);
 
-        ladderSvg.appendChild(path);
+            let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            polyline.setAttribute("stroke",lineColor);
+            polyline.setAttribute("stroke-width",lineWidth);
+            polyline.setAttribute("stroke-linecap","round");
+            polyline.setAttribute("stroke-linejoin","round");
+            polyline.setAttribute("fill",backgroundColor);
+            polyline.setAttribute("fill-opacity",0);
+            polyline.setAttribute("points", points);;
+            ladderSvg.appendChild(polyline);
+        } else {
+            let separator = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            separator.setAttribute("stroke",backgroundColor);
+            separator.setAttribute("stroke-width",+lineWidth + +separatorWidth);
+            separator.setAttribute("stroke-linecap","butt");
+            separator.setAttribute("fill",backgroundColor);
+            separator.setAttribute("fill-opacity",0);
+    
+            // This neatens the overlap between throws. It would be better to actually calculate the length, and
+            // subtract the polyline's width from each side. Instead of doing that math, I just chop off 5% from the start and end.
+            separator.setAttribute("pathLength","100");
+            separator.setAttribute("stroke-dasharray","90 10");
+            separator.setAttribute("stroke-dashoffset","-5");   
+
+            let path = document.createElementNS("http://www.w3.org/2000/svg", "path"); 
+            path.setAttribute("stroke",lineColor);
+            path.setAttribute("stroke-width",lineWidth);
+            path.setAttribute("stroke-linecap","round");
+            path.setAttribute("stroke-linejoin","round");
+            path.setAttribute("fill",backgroundColor);
+            path.setAttribute("fill-opacity",0);
+            const d = "M"+startX+","+startY+" Q"+peakX+","+peakY+" "+endX+","+startY;
+            path.setAttribute("d",d);
+            separator.setAttribute("d",d);
+            ladderSvg.appendChild(separator);
+
+            ladderSvg.appendChild(path);
+        }
     }
 
     let firstThrow = true;
@@ -358,6 +399,7 @@ function getInput() {
         catching = false;
         document.getElementById("catchingCheck").checked = catching; 
     }
+    pointy = document.getElementById("pointyCheck").checked; 
     invert = document.getElementById("invertCheck").checked; 
     showOnlyFirstThrows = document.getElementById("showOnlyFirstThrowsCheck").checked;
     backgroundColor = document.getElementById("backgroundColorInput").value;
@@ -380,6 +422,7 @@ function setInput() {
     document.getElementById("showCenterLineCheck").checked = showCenterLine; 
     document.getElementById("catchingCheck").checked = catching; 
     document.getElementById("unidirectionalCheck").checked = unidirectional; 
+    document.getElementById("pointyCheck").checked = pointy; 
     document.getElementById("invertCheck").checked = invert; 
     document.getElementById("showOnlyFirstThrowsCheck").checked = showOnlyFirstThrows; 
 
