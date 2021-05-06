@@ -19,10 +19,10 @@
 
 
         <h2>Siteswap Diagram Generator</h2>
-        <p>This is a super-simple utility for generating vector files (SVG format) to represent siteswaps. At present,
+        <p>This is a super simple utility for generating vector files (SVG format) to represent siteswaps. At present,
             no validation of the siteswap is performed. Only vanilla asynchronous siteswaps with max throwheight 9 are
             currently supported. If you want a better tool for siteswap visualization, visit <a
-                href="https://juggling.graphics/">juggling.graphics</a></a></p>
+                href="https://juggling.graphics/">juggling.graphics</a>.</p>
 
 
 
@@ -206,7 +206,7 @@
                 </div>
             </div>
             <div class="col-sm">
-                <div class="form-check mb-3" onclick="getInput()">
+                <div class="form-check mb-3" onclick="getInput()" data-toggle="tooltip" title="In the siteswap diagram, all catches made by juggler 1 (or hand 1) will have upward-facing peaks, and all catches made by juggler 2 will have downward-facing peaks. If unchecked, the up-ness or down-ness of the peak is alternated by throwers.">
                     <input class="form-check-input" type="checkbox" value="" id="catchingCheck">
                     <label class="form-check-label" for="catchingCheck">
                        Sort by catcher 
@@ -230,7 +230,7 @@
                 </div>
             </div>
             <div class="col-sm">
-                <div class="form-check mb-3" onclick="getInput()">
+                <div class="form-check mb-3" onclick="getInput()" data-toggle="tooltip" title='In the siteswap diagram, "non-throws" are 1s. In the ladder diagram, "non-throws" are 2s.'>
                     <input class="form-check-input" type="checkbox" value="" id="flattenCheck">
                     <label class="form-check-label" for="flattenCheck">
                         Flatten non-throws

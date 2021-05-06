@@ -1,7 +1,7 @@
 // const siteswap=[7,7,7,8,6]; //The base siteswap
 let siteswap=[7,7,7,8,2,7,7,7,2,6]; //The base siteswap
 let throws = 30; // The number of throws to show
-let lineWidth = 15; // Thickness of the line showing the pattern
+let lineWidth = 25; // Thickness of the line showing the pattern
 let lineColor = "black"; 
 let backgroundColor = "white";
 // let separatorColor = "white";
@@ -27,6 +27,7 @@ let flatten = true;
 
 setInput();
 refresh();
+disableInputs();
 
 function refresh() {
 
@@ -41,6 +42,7 @@ siteswapContainer.innerHTML = '';
 
 let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 svg.setAttribute("id","siteswap");
+//TODO: showLastCatches assumes the last throw is caught last. Does not factor in when earlier throws are caught after last throw.
 const width = +widthIncrement + (pattern.length + (showLastCatches * pattern[pattern.length-1])) * +widthIncrement;
 svg.setAttribute("viewBox", "0 0 "+width+" 1000");
 svg.setAttribute("style","background-color:"+backgroundColor);
@@ -406,10 +408,6 @@ function getInput() {
     siteswap = Array.from(document.getElementById("siteswapInput").value);
     catching = document.getElementById("catchingCheck").checked;
     unidirectional = document.getElementById("unidirectionalCheck").checked; 
-    if (unidirectional) {
-        catching = false;
-        document.getElementById("catchingCheck").checked = catching; 
-    }
     pointy = document.getElementById("pointyCheck").checked; 
     invert = document.getElementById("invertCheck").checked; 
     showOnlyFirstThrows = document.getElementById("showOnlyFirstThrowsCheck").checked;
@@ -424,6 +422,7 @@ function getInput() {
     valueOutlineColor = document.getElementById("valueOutlineColorInput").value;
     valueTextColor = document.getElementById("valueTextColorInput").value;
     valueTextSize = document.getElementById("valueTextSizeInput").value;
+    disableInputs();
     refresh();
   }
 
@@ -454,6 +453,27 @@ function setInput() {
     document.getElementById("valueOutlineColorInput").value = valueOutlineColor;
     document.getElementById("valueTextColorInput").value = valueTextColor;
     document.getElementById("valueTextSizeInput").value = valueTextSize;
+}
+
+// Based on checkboxes, disable any inputs that don't make sense to use
+function disableInputs() {
+    if (unidirectional) {
+        document.getElementById("catchingCheck").disabled = true;
+        catching = false;
+    } else {
+        document.getElementById("catchingCheck").disabled = false;
+    }
+
+    document.getElementById("centerLineColorInput").disabled = !showCenterLine; 
+    document.getElementById("centerLineWidthInput").disabled = !showCenterLine; 
+    
+    document.getElementById("showOnlyFirstThrowsCheck").disabled = !showValueAtThrow;
+    const showSomeValues = (showValueAtThrow || showValueAtPeak);
+    document.getElementById("valueSizeInput").disabled = !showSomeValues;
+    document.getElementById("valueBackgroundColorInput").disabled = !showSomeValues;
+    document.getElementById("valueOutlineColorInput").disabled = !showSomeValues;
+    document.getElementById("valueTextColorInput").disabled = !showSomeValues;
+    document.getElementById("valueTextSizeInput").disabled = !showSomeValues;
 }
 
 function download(elementId) {
