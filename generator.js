@@ -124,6 +124,9 @@ for (let i=0; i<pattern.length; i++) {
 
     svg.appendChild(separator);
 
+    // svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth));
+    // svg.appendChild(lineToRectangle(endX, endY, peakX, peakY, lineWidth, backgroundColor, separatorWidth));
+
     let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
 
     // dark = right, non-dark = left
@@ -151,6 +154,9 @@ for (let i=0; i<pattern.length; i++) {
     polyline.setAttribute("fill-opacity",0);
     polyline.setAttribute("points", points);
     svg.appendChild(polyline);
+
+    // svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, lineColor));
+    // svg.appendChild(lineToRectangle(endX, endY, peakX, peakY, lineWidth, lineColor));
 
     if (showValueAtPeak) {
         let label = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -390,6 +396,33 @@ for (let i=0; i<pattern.length; i++) {
 
 }
 ladderContainer.appendChild(ladderSvg);
+}
+
+/**
+ * Given the x,y coordinates of a line's start and end points,
+ * and the desired thickness, generate a polygon rectangle
+ */
+function lineToRectangle(x1,y1,x2,y2,thickness, color, sepThickness) {
+    const numThickness = +thickness;
+    const numSepThickness = sepThickness ? +sepThickness : 0;
+    const slope = (y2-y1)/(x2-x1);
+    // const hypotenuse = ((numThickness)/2) * slope;
+    const hypotenuse = ((numThickness+numSepThickness)/2) * slope;
+    const skewedLeftX1 = x1 + hypotenuse;
+    const skewedRightX1 = x1 - hypotenuse;
+    const skewedLeftX2 = x2 + hypotenuse;
+    const skewedRightX2 = x2 - hypotenuse;
+    const upperRight = skewedRightX1 + "," + y1;
+    const upperLeft = skewedLeftX1 + "," + y1;
+    const lowerRight = skewedRightX2 + "," + y2;
+    const lowerLeft = skewedLeftX2 + "," + y2;
+    const points = upperRight + " " + upperLeft + " " + lowerLeft + " " + lowerRight;
+    const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    polygon.setAttribute("stroke","blue");
+    polygon.setAttribute("stroke-width","1");
+    polygon.setAttribute("fill",color);
+    polygon.setAttribute("points", points);;
+    return polygon;
 }
 
 function getInput() {
