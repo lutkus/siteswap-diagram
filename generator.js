@@ -23,6 +23,7 @@ let valueTextColor = "black";
 let valueTextSize = 20;
 let showOnlyFirstThrows = false;
 let pointy = false;
+let flatten = true;
 
 setInput();
 refresh();
@@ -82,7 +83,11 @@ for (let i=0; i<pattern.length; i++) {
     const endX = startX + (+widthIncrement * pattern[i]);
     const endY = centerPoint;
     const peakX = startX + ((+widthIncrement * pattern[i]) / 2);
-    const peakY = centerPoint + catchSide*direction*(100 * pattern[i] / 2);
+    let peakY = centerPoint + catchSide*direction*(100 * pattern[i] / 2);
+
+    if (flatten && pattern[i] == 1) {
+        peakY = centerPoint;
+    }
 
 
     // let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -285,11 +290,14 @@ for (let i=0; i<pattern.length; i++) {
             } else {
                 newSide = 1;
             }
-            if (side) {
-                // peakY = centerPoint - (5*pattern[i]);
-                peakY = startY - (18*pattern[i]) - 50;
+            if (flatten && pattern[i] == 2) {
+                peakY = startY;
             } else {
-                peakY = startY + (18*pattern[i]) + 50;
+                if (side) {
+                    peakY = startY - (18*pattern[i]) - 50;
+                } else {
+                    peakY = startY + (18*pattern[i]) + 50;
+                }
             }
             const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+startY;
             let separator = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
@@ -317,6 +325,9 @@ for (let i=0; i<pattern.length; i++) {
             polyline.setAttribute("points", points);;
             ladderSvg.appendChild(polyline);
         } else {
+            if (flatten && pattern[i] == 2) {
+                peakY = startY;
+            }
             let separator = document.createElementNS("http://www.w3.org/2000/svg", "path");
             separator.setAttribute("stroke",backgroundColor);
             separator.setAttribute("stroke-width",+lineWidth + +separatorWidth);
@@ -402,6 +413,7 @@ function getInput() {
     pointy = document.getElementById("pointyCheck").checked; 
     invert = document.getElementById("invertCheck").checked; 
     showOnlyFirstThrows = document.getElementById("showOnlyFirstThrowsCheck").checked;
+    flatten = document.getElementById("flattenCheck").checked;
     backgroundColor = document.getElementById("backgroundColorInput").value;
     lineColor = document.getElementById("lineColorInput").value;
     centerLineColor = document.getElementById("centerLineColorInput").value;
@@ -425,6 +437,7 @@ function setInput() {
     document.getElementById("pointyCheck").checked = pointy; 
     document.getElementById("invertCheck").checked = invert; 
     document.getElementById("showOnlyFirstThrowsCheck").checked = showOnlyFirstThrows; 
+    document.getElementById("flattenCheck").checked = flatten; 
 
     document.getElementById("lineWidthInput").value = lineWidth;
     document.getElementById("centerLineWidthInput").value = centerLineWidth;
