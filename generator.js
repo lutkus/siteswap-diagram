@@ -1,6 +1,6 @@
 // const siteswap=[7,7,7,8,6]; //The base siteswap
 let siteswap=[7,7,7,8,2,7,7,7,2,6]; //The base siteswap
-let throws = 30; // The number of throws to show
+let throws = 15; // The number of throws to show
 let lineWidth = 25; // Thickness of the line showing the pattern
 let lineColor = "black"; 
 let backgroundColor = "white";
@@ -114,7 +114,7 @@ for (let i=0; i<pattern.length; i++) {
     separator.setAttribute("stroke-linecap","butt");
     separator.setAttribute("fill",backgroundColor);
     separator.setAttribute("fill-opacity",0);
-    separator.setAttribute("points", points);
+    // separator.setAttribute("points", points);
 
     // This neatens the overlap between throws. It would be better to actually calculate the length, and
     // subtract the polyline's width from each side. Instead of doing that math, I just chop off 5% from the start and end.
@@ -124,8 +124,8 @@ for (let i=0; i<pattern.length; i++) {
 
     svg.appendChild(separator);
 
-    // svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth));
-    // svg.appendChild(lineToRectangle(endX, endY, peakX, peakY, lineWidth, backgroundColor, separatorWidth));
+    svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth, direction*catchSide));
+    svg.appendChild(lineToRectangle(endX, endY, peakX, peakY, lineWidth, backgroundColor, separatorWidth, direction*catchSide));
 
     let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
 
@@ -153,10 +153,11 @@ for (let i=0; i<pattern.length; i++) {
     polyline.setAttribute("fill",backgroundColor);
     polyline.setAttribute("fill-opacity",0);
     polyline.setAttribute("points", points);
-    svg.appendChild(polyline);
+    // svg.appendChild(polyline);
 
-    // svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, lineColor));
-    // svg.appendChild(lineToRectangle(endX, endY, peakX, peakY, lineWidth, lineColor));
+    svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, lineColor));
+    svg.appendChild(lineToRectangle(endX, endY, peakX, peakY, lineWidth, lineColor));
+    // svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth)); //JEFF: delete me
 
     if (showValueAtPeak) {
         let label = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -402,26 +403,68 @@ ladderContainer.appendChild(ladderSvg);
  * Given the x,y coordinates of a line's start and end points,
  * and the desired thickness, generate a polygon rectangle
  */
-function lineToRectangle(x1,y1,x2,y2,thickness, color, sepThickness) {
+function lineToRectangle(x1,y1,x2,y2,thickness, color, sepThickness, direction) {
+    //TODO: Implement so this also can draw horizontal lines (such as for flattened 1 throws)
+
     const numThickness = +thickness;
     const numSepThickness = sepThickness ? +sepThickness : 0;
     const slope = (y2-y1)/(x2-x1);
-    // const hypotenuse = ((numThickness)/2) * slope;
-    const hypotenuse = ((numThickness+numSepThickness)/2) * slope;
+    const sideA = ((numThickness+numSepThickness)/2);
+    const hypotenuse = sideA * slope;
+
     const skewedLeftX1 = x1 + hypotenuse;
     const skewedRightX1 = x1 - hypotenuse;
     const skewedLeftX2 = x2 + hypotenuse;
     const skewedRightX2 = x2 - hypotenuse;
-    const upperRight = skewedRightX1 + "," + y1;
-    const upperLeft = skewedLeftX1 + "," + y1;
-    const lowerRight = skewedRightX2 + "," + y2;
-    const lowerLeft = skewedLeftX2 + "," + y2;
-    const points = upperRight + " " + upperLeft + " " + lowerLeft + " " + lowerRight;
+
+    let upperRight = skewedRightX1 + "," + y1;
+    let upperLeft = skewedLeftX1 + "," + y1;
+    let lowerRight = skewedRightX2 + "," + y2;
+    let lowerLeft = skewedLeftX2 + "," + y2
+
     const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-    polygon.setAttribute("stroke","blue");
-    polygon.setAttribute("stroke-width","1");
+    polygon.setAttribute("stroke-width","0");
+    if (numSepThickness) {
+        
+
+        if (direction == -1) {
+            const b1 = y1 - ((1)*slope*skewedLeftX1);
+            const b2 = y1 - ((-1)*slope*skewedRightX1);
+            const crossX = (b2-b1)/(2*slope);
+            const crossY = (slope*crossX) + b1;
+            upperLeft = crossX + "," + crossY;
+
+            const b3 = y2 - ((1)*slope*skewedRightX2);
+            const b4 = y2 - ((-1)*slope*skewedLeftX2);
+            const crossX2 = (b4-b3)/(2*slope);
+            const crossY2 = (slope*crossX2) + b3;
+            lowerRight = crossX2 + "," + crossY2;
+        } else {
+            const b1 = y1 - ((1)*slope*skewedRightX1);
+            const b2 = y1 - ((-1)*slope*skewedLeftX1);
+            const crossX = (b2-b1)/(2*slope);
+            const crossY = (slope*crossX) + b1;
+            upperRight = crossX + "," + crossY;
+
+            const b3 = y2 - ((1)*slope*skewedLeftX2);
+            const b4 = y2 - ((-1)*slope*skewedRightX2);
+            const crossX2 = (b4-b3)/(2*slope);
+            const crossY2 = (slope*crossX2) + b3;
+            lowerLeft = crossX2 + "," + crossY2;
+        }
+
+        // polygon.setAttribute("stroke-width","2");
+        // polygon.setAttribute("stroke","blue");
+        // polygon.setAttribute("fill-opacity",.2);
+    }
+
+;
+
+
+
+    const points = upperRight + " " + upperLeft + " " + lowerLeft + " " + lowerRight;
     polygon.setAttribute("fill",color);
-    polygon.setAttribute("points", points);;
+    polygon.setAttribute("points", points);
     return polygon;
 }
 
