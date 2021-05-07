@@ -1,13 +1,13 @@
 // const siteswap=[7,7,7,8,6]; //The base siteswap
 let siteswap=[7,7,7,8,2,7,7,7,2,6]; //The base siteswap
-let throws = 15; // The number of throws to show
-let lineWidth = 25; // Thickness of the line showing the pattern
+let throws = 30; // The number of throws to show
+let lineWidth = 30; // Thickness of the line showing the pattern
 let lineColor = "black"; 
 let backgroundColor = "white";
 // let separatorColor = "white";
 let centerLineColor = "blue";
 let centerLineWidth = 10;
-let separatorWidth = 10; // How much thicker the separator line is than the pattern line
+let separatorWidth = 20; // How much thicker the separator line is than the pattern line
 let showLastCatches = 0; // 1=show last catches; 0=end at last throw
 let showValueAtPeak = false;
 let showValueAtThrow = false;
@@ -124,8 +124,10 @@ for (let i=0; i<pattern.length; i++) {
 
     svg.appendChild(separator);
 
-    svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth, direction*catchSide));
-    svg.appendChild(lineToRectangle(endX, endY, peakX, peakY, lineWidth, backgroundColor, separatorWidth, direction*catchSide));
+    // svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth, direction*catchSide, true));
+    // svg.appendChild(lineToRectangle(endX, endY, peakX, peakY, lineWidth, backgroundColor, separatorWidth, direction*catchSide, false));
+    generateLines(svg, startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth);
+    generateLines(svg, endX, endY, peakX, peakY, lineWidth, backgroundColor, separatorWidth);
 
     let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
 
@@ -155,9 +157,8 @@ for (let i=0; i<pattern.length; i++) {
     polyline.setAttribute("points", points);
     // svg.appendChild(polyline);
 
-    svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, lineColor));
-    svg.appendChild(lineToRectangle(endX, endY, peakX, peakY, lineWidth, lineColor));
-    // svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth)); //JEFF: delete me
+    generateLines(svg, startX, startY, peakX, peakY, lineWidth, lineColor, 0);
+    generateLines(svg, endX, endY, peakX, peakY, lineWidth, lineColor, 0);
 
     if (showValueAtPeak) {
         let label = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -399,16 +400,89 @@ for (let i=0; i<pattern.length; i++) {
 ladderContainer.appendChild(ladderSvg);
 }
 
+//TODO: fix separator for slopes other than 1. 
+//TODO: make sparator include the peaks
+function generateLines(svg,x1,y1,x2,y2,thickness,color,sepThickness) {
+    const slope = (y2-y1)/(x2-x1);
+    const radius = (+thickness + +sepThickness)/2;
+    const sepRadius = sepThickness ? +sepThickness : 0;
+
+    const xOffset = radius*Math.sin(Math.atan(slope));
+    const yOffset = radius*Math.cos(Math.atan(slope));
+
+    const rightX1 = x1 + xOffset;
+    const rightY1 = y1 - yOffset; 
+    const right1 = rightX1+","+rightY1;
+
+    const leftX1 = x1 - xOffset;
+    const leftY1 = y1 + yOffset; 
+    const left1 = leftX1+","+leftY1;
+    
+    const rightX2 = x2 + xOffset;
+    const rightY2 = y2 - yOffset; 
+    const right2 = rightX2+","+rightY2;
+
+    const leftX2 = x2 - xOffset;
+    const leftY2 = y2 + yOffset; 
+    const left2 = leftX2+","+leftY2;
+
+    let polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    polygon.setAttribute("fill",color);
+    polygon.setAttribute("stroke-width",0);
+    polygon.setAttribute("stroke",color);
+    // polygon.setAttribute("opacity",0.5);
+    polygon.setAttribute("points", right1+" "+left1+" "+left2+" "+right2);
+    svg.appendChild(polygon);
+    
+    if (sepRadius == 0) {
+        // Round the edges for lines, but not for separators.
+        let circle1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle1.setAttribute("cx",x1);  
+        circle1.setAttribute("cy",y1);
+        circle1.setAttribute("r",radius);
+        circle1.setAttribute("fill",color);        
+        svg.appendChild(circle1);
+
+        let circle2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle2.setAttribute("cx",x2);  
+        circle2.setAttribute("cy",y2);
+        circle2.setAttribute("r",radius);
+        circle2.setAttribute("fill",color);        
+        svg.appendChild(circle2);    
+    } else {
+        const xOffsetS = (thickness/2)*Math.cos(Math.atan(slope));
+        const yOffsetS = (thickness/2)*Math.sin(Math.atan(slope));
+        const lineEdgeX = x1+xOffsetS;
+        const lineEdgeY = y1+yOffsetS;
+        const newRight1 = (lineEdgeX+xOffset) + "," + (lineEdgeY-yOffset); 
+        const newLeft1 = (lineEdgeX-xOffset) + "," + (lineEdgeY+yOffset); 
+
+        polygon.setAttribute("points",newRight1+" "+newLeft1+" "+left2+" "+right2)
+        // polygon.setAttribute("stroke-width",2);
+        // polygon.setAttribute("stroke","blue");
+        // polygon.setAttribute("opacity",0.4);
+
+        // let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        // circle.setAttribute("cx",lineEdgeX);  
+        // circle.setAttribute("cy",lineEdgeY);
+        // circle.setAttribute("r",5);
+        // circle.setAttribute("fill","red");        
+        // svg.appendChild(circle); 
+    }
+
+
+}
 /**
  * Given the x,y coordinates of a line's start and end points,
  * and the desired thickness, generate a polygon rectangle
  */
-function lineToRectangle(x1,y1,x2,y2,thickness, color, sepThickness, direction) {
+function lineToRectangleOld(x1,y1,x2,y2,thickness, color, sepThickness, direction, rising, svg) {
     //TODO: Implement so this also can draw horizontal lines (such as for flattened 1 throws)
 
     const numThickness = +thickness;
     const numSepThickness = sepThickness ? +sepThickness : 0;
     const slope = (y2-y1)/(x2-x1);
+
     const sideA = ((numThickness+numSepThickness)/2);
     const hypotenuse = sideA * slope;
 
@@ -417,16 +491,52 @@ function lineToRectangle(x1,y1,x2,y2,thickness, color, sepThickness, direction) 
     const skewedLeftX2 = x2 + hypotenuse;
     const skewedRightX2 = x2 - hypotenuse;
 
+    const a = (numThickness+numSepThickness)/2 * Math.sin(Math.atan(slope));
+    const b = (numThickness+numSepThickness)/2 * Math.cos(Math.atan(slope));
+
+    const lineX = (rising) ? x1 - b : x1 + b;
+    const lineY = (rising) ? y1 - a : y1 + a;
+    const upperCurve = lineX + "," + lineY;
+    if (svg) {
+
+
+        // let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        // circle.setAttribute("cx",lineX);  
+        // circle.setAttribute("cy",lineY);
+        // circle.setAttribute("r",5);
+        // circle.setAttribute("fill","green")        
+        // svg.appendChild(circle);
+
+        let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx",x1);  
+        circle.setAttribute("cy",y1);
+        circle.setAttribute("r",(numThickness)/2);
+        circle.setAttribute("fill","red")        
+        svg.appendChild(circle);
+
+    }
+
+
+    const xIntercept = (x1 + skewedRightX1)/2; 
+    const yIntercept = (-1)*slope*(xIntercept-x1)+y1;
+
+    const xOffset = xIntercept - x1;
+    const yOffset = yIntercept - y1;
+
     let upperRight = skewedRightX1 + "," + y1;
     let upperLeft = skewedLeftX1 + "," + y1;
     let lowerRight = skewedRightX2 + "," + y2;
-    let lowerLeft = skewedLeftX2 + "," + y2
+    let lowerLeft = skewedLeftX2 + "," + y2;
+
+
+    upperRight = xIntercept + "," + yIntercept;
+    upperLeft = (x1-xOffset) + "," + (y1-yOffset);
+    lowerRight = (x2+xOffset) + "," + (y2+yOffset);
+    lowerLeft = (x2-xOffset) + "," + (y2-yOffset);
 
     const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
     polygon.setAttribute("stroke-width","0");
     if (numSepThickness) {
-        
-
         if (direction == -1) {
             const b1 = y1 - ((1)*slope*skewedLeftX1);
             const b2 = y1 - ((-1)*slope*skewedRightX1);
@@ -439,6 +549,19 @@ function lineToRectangle(x1,y1,x2,y2,thickness, color, sepThickness, direction) 
             const crossX2 = (b4-b3)/(2*slope);
             const crossY2 = (slope*crossX2) + b3;
             lowerRight = crossX2 + "," + crossY2;
+
+            if (svg) {
+
+                // goal: want lowerLeft to have an x coordinate of x2+xOffset
+                // and a y coordinate that connects the line to this dot.
+
+                // let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                // circle.setAttribute("cx",x2);  
+                // circle.setAttribute("cy",y2-yOffset);
+                // circle.setAttribute("r",5);
+                // circle.setAttribute("fill","red")        
+                // svg.appendChild(circle);
+            }
         } else {
             const b1 = y1 - ((1)*slope*skewedRightX1);
             const b2 = y1 - ((-1)*slope*skewedLeftX1);
@@ -453,19 +576,26 @@ function lineToRectangle(x1,y1,x2,y2,thickness, color, sepThickness, direction) 
             lowerLeft = crossX2 + "," + crossY2;
         }
 
-        // polygon.setAttribute("stroke-width","2");
-        // polygon.setAttribute("stroke","blue");
-        // polygon.setAttribute("fill-opacity",.2);
+        polygon.setAttribute("stroke-width","2");
+        polygon.setAttribute("stroke","blue");
+        polygon.setAttribute("fill-opacity",.3);
     }
 
-;
+
 
 
 
     const points = upperRight + " " + upperLeft + " " + lowerLeft + " " + lowerRight;
     polygon.setAttribute("fill",color);
     polygon.setAttribute("points", points);
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("stroke-width","0"); 
+    path.setAttribute("fill",color);
+    // path.setAttribute("d", "M"+startRight + " L" + startLeft + " L"+peakLeft + " L" + peakRight + " L" + endRight + " L"+ endLeft + " L" + lowerPeak + " Z");
+    path.setAttribute("d", "M"+upperRight + " Q" + upperCurve + " " + upperLeft + " L" + lowerLeft + " L" + lowerRight + " Z");
     return polygon;
+    // return path;
 }
 
 function getInput() {
