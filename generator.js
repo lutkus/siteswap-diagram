@@ -458,16 +458,18 @@ function generateLines(svg,x1,y1,x2,y2,thickness,color,sepThickness) {
         const newLeft1 = (lineEdgeX-xOffset) + "," + (lineEdgeY+yOffset); 
 
         polygon.setAttribute("points",newRight1+" "+newLeft1+" "+left2+" "+right2)
-        // polygon.setAttribute("stroke-width",2);
-        // polygon.setAttribute("stroke","blue");
-        // polygon.setAttribute("opacity",0.4);
+        polygon.setAttribute("stroke-width",2);
+        polygon.setAttribute("stroke","blue");
+        polygon.setAttribute("opacity",0.4);
 
-        // let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        // circle.setAttribute("cx",lineEdgeX);  
-        // circle.setAttribute("cy",lineEdgeY);
-        // circle.setAttribute("r",5);
-        // circle.setAttribute("fill","red");        
-        // svg.appendChild(circle); 
+        let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx",x2);  
+        circle.setAttribute("cy",y2);
+        circle.setAttribute("r",radius);
+        circle.setAttribute("fill",color);        
+        circle.setAttribute("stroke-width",2);
+        circle.setAttribute("stroke","blue");
+        svg.appendChild(circle); 
     }
 
 
