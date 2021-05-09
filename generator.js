@@ -1,12 +1,12 @@
 // const siteswap=[7,7,7,8,6]; //The base siteswap
 let siteswap=[7,7,7,8,2,7,7,7,2,6]; //The base siteswap
-let throws = 30; // The number of throws to show
+let throws = 20; // The number of throws to show
 let lineWidth = 30; // Thickness of the line showing the pattern
 let lineColor = "black"; 
 let backgroundColor = "white";
 // let separatorColor = "white";
 let centerLineColor = "blue";
-let centerLineWidth = 10;
+let centerLineWidth = 5;
 let separatorWidth = 20; // How much thicker the separator line is than the pattern line
 let showLastCatches = 0; // 1=show last catches; 0=end at last throw
 let showValueAtPeak = false;
@@ -15,7 +15,7 @@ let showCenterLine = false;
 let catching = false;
 let unidirectional = false;
 let invert = false;
-let widthIncrement = 100;
+let widthIncrement = 70;
 let valueSize = 15;
 let valueBackgroundColor = "white";
 let valueOutlineColor = "black";
@@ -36,6 +36,14 @@ while (pattern.length < throws) {
     pattern = pattern.concat(siteswap);
 }
 pattern = pattern.slice(0,throws);
+
+// When drawing the separator line, it is sometimes necessary to know
+// what the last throw of the given object was.
+let catchOrigin = [];
+for (let i=0; i<pattern.length; i++) {
+    const currentThrow = +pattern[i];
+    catchOrigin[i+currentThrow] = currentThrow;
+}
 
 let siteswapContainer = document.getElementById('siteswapContainer');
 siteswapContainer.innerHTML = '';
@@ -91,42 +99,26 @@ for (let i=0; i<pattern.length; i++) {
         peakY = centerPoint;
     }
 
+    // const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+endY;
 
-    // let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    // circle.setAttribute("cx",startX);
-    // circle.setAttribute("r","5");
-    // circle.setAttribute("stroke",lineColor);
-    // circle.setAttribute("stroke-width","1");
-    // if (i % 2) {
-    //     circle.setAttribute("fill","blue"); 
-    //     circle.setAttribute("cy","502");
-    // } else {
-    //     circle.setAttribute("fill","red");
-    //     circle.setAttribute("cy","498");
-    // }
-    // svg.appendChild(circle);
-
-    const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+endY;
-
-    let separator = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-    separator.setAttribute("stroke",backgroundColor);
-    separator.setAttribute("stroke-width",+lineWidth + +separatorWidth);
-    separator.setAttribute("stroke-linecap","butt");
-    separator.setAttribute("fill",backgroundColor);
-    separator.setAttribute("fill-opacity",0);
+    // let separator = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+    // separator.setAttribute("stroke",backgroundColor);
+    // separator.setAttribute("stroke-width",+lineWidth + +separatorWidth);
+    // separator.setAttribute("stroke-linecap","butt");
+    // separator.setAttribute("fill",backgroundColor);
+    // separator.setAttribute("fill-opacity",0);
     // separator.setAttribute("points", points);
 
     // This neatens the overlap between throws. It would be better to actually calculate the length, and
     // subtract the polyline's width from each side. Instead of doing that math, I just chop off 5% from the start and end.
-    separator.setAttribute("pathLength","100");
-    separator.setAttribute("stroke-dasharray","90 10");
-    separator.setAttribute("stroke-dashoffset","-5");
+    // separator.setAttribute("pathLength","100");
+    // separator.setAttribute("stroke-dasharray","90 10");
+    // separator.setAttribute("stroke-dashoffset","-5");
 
-    svg.appendChild(separator);
+    // svg.appendChild(separator);
 
-    // svg.appendChild(lineToRectangle(startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth, direction*catchSide, true));
-    // svg.appendChild(lineToRectangle(endX, endY, peakX, peakY, lineWidth, backgroundColor, separatorWidth, direction*catchSide, false));
-    generateLines(svg, startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth);
+    //TODO: get the separator also working for "Sort by catcher" mode
+    generateLines(svg, startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth, ((catchOrigin[i]+1)%2) || unidirectional, catchSide*direction);
     generateLines(svg, endX, endY, peakX, peakY, lineWidth, backgroundColor, separatorWidth);
 
     let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
@@ -148,13 +140,13 @@ for (let i=0; i<pattern.length; i++) {
     // }
     // polyline.setAttribute("stroke",darkness+color);
 
-    polyline.setAttribute("stroke",lineColor);
-    polyline.setAttribute("stroke-width",lineWidth);
-    polyline.setAttribute("stroke-linecap","round");
-    polyline.setAttribute("stroke-linejoin","round");
-    polyline.setAttribute("fill",backgroundColor);
-    polyline.setAttribute("fill-opacity",0);
-    polyline.setAttribute("points", points);
+    // polyline.setAttribute("stroke",lineColor);
+    // polyline.setAttribute("stroke-width",lineWidth);
+    // polyline.setAttribute("stroke-linecap","round");
+    // polyline.setAttribute("stroke-linejoin","round");
+    // polyline.setAttribute("fill",backgroundColor);
+    // polyline.setAttribute("fill-opacity",0);
+    // polyline.setAttribute("points", points);
     // svg.appendChild(polyline);
 
     generateLines(svg, startX, startY, peakX, peakY, lineWidth, lineColor, 0);
@@ -323,7 +315,10 @@ for (let i=0; i<pattern.length; i++) {
             separator.setAttribute("pathLength","100");
             separator.setAttribute("stroke-dasharray","80 20");
             separator.setAttribute("stroke-dashoffset","-10");
-            ladderSvg.appendChild(separator);
+            // ladderSvg.appendChild(separator);
+            //TODO get "side" working... something isn't right with separator
+            generateLines(ladderSvg, startX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth, true);
+            generateLines(ladderSvg, endX, startY, peakX, peakY, lineWidth, backgroundColor, separatorWidth);
 
             let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
             polyline.setAttribute("stroke",lineColor);
@@ -333,7 +328,9 @@ for (let i=0; i<pattern.length; i++) {
             polyline.setAttribute("fill",backgroundColor);
             polyline.setAttribute("fill-opacity",0);
             polyline.setAttribute("points", points);;
-            ladderSvg.appendChild(polyline);
+            // ladderSvg.appendChild(polyline);
+            generateLines(ladderSvg, startX, startY, peakX, peakY, lineWidth, lineColor, 0);
+            generateLines(ladderSvg, endX, startY, peakX, peakY, lineWidth, lineColor, 0);
         } else {
             if (flatten && pattern[i] == 2) {
                 peakY = startY;
@@ -400,9 +397,9 @@ for (let i=0; i<pattern.length; i++) {
 ladderContainer.appendChild(ladderSvg);
 }
 
-//TODO: fix separator for slopes other than 1. 
-//TODO: make sparator include the peaks
-function generateLines(svg,x1,y1,x2,y2,thickness,color,sepThickness) {
+//TODO: This works for visual space between throws = 100 or lower, but not >100
+//TODO: for ladder diagram, also use this function for flatten 2s
+function generateLines(svg,x1,y1,x2,y2,thickness,color,sepThickness, fixIntercept, down) {
     const slope = (y2-y1)/(x2-x1);
     const radius = (+thickness + +sepThickness)/2;
     const sepRadius = sepThickness ? +sepThickness : 0;
@@ -428,11 +425,7 @@ function generateLines(svg,x1,y1,x2,y2,thickness,color,sepThickness) {
 
     let polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
     polygon.setAttribute("fill",color);
-    polygon.setAttribute("stroke-width",0);
-    polygon.setAttribute("stroke",color);
-    // polygon.setAttribute("opacity",0.5);
     polygon.setAttribute("points", right1+" "+left1+" "+left2+" "+right2);
-    svg.appendChild(polygon);
     
     if (sepRadius == 0) {
         // Round the edges for lines, but not for separators.
@@ -440,7 +433,7 @@ function generateLines(svg,x1,y1,x2,y2,thickness,color,sepThickness) {
         circle1.setAttribute("cx",x1);  
         circle1.setAttribute("cy",y1);
         circle1.setAttribute("r",radius);
-        circle1.setAttribute("fill",color);        
+        circle1.setAttribute("fill",color);  
         svg.appendChild(circle1);
 
         let circle2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -450,155 +443,63 @@ function generateLines(svg,x1,y1,x2,y2,thickness,color,sepThickness) {
         circle2.setAttribute("fill",color);        
         svg.appendChild(circle2);    
     } else {
-        const xOffsetS = (thickness/2)*Math.cos(Math.atan(slope));
-        const yOffsetS = (thickness/2)*Math.sin(Math.atan(slope));
-        const lineEdgeX = x1+xOffsetS;
-        const lineEdgeY = y1+yOffsetS;
-        const newRight1 = (lineEdgeX+xOffset) + "," + (lineEdgeY-yOffset); 
-        const newLeft1 = (lineEdgeX-xOffset) + "," + (lineEdgeY+yOffset); 
+        // Do the special things required for separators.
+        let circle2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle2.setAttribute("cx",x2);  
+        circle2.setAttribute("cy",y2);
+        circle2.setAttribute("r",radius);
+        circle2.setAttribute("fill",color);        
+        svg.appendChild(circle2); 
 
-        polygon.setAttribute("points",newRight1+" "+newLeft1+" "+left2+" "+right2)
-        polygon.setAttribute("stroke-width",2);
-        polygon.setAttribute("stroke","blue");
-        polygon.setAttribute("opacity",0.4);
+        if(fixIntercept) {
+            //TODO: get the circle right. It should be placed at the end of the "previous throw", rather than the start of the "current throw"
 
-        let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("cx",x2);  
-        circle.setAttribute("cy",y2);
-        circle.setAttribute("r",radius);
-        circle.setAttribute("fill",color);        
-        circle.setAttribute("stroke-width",2);
-        circle.setAttribute("stroke","blue");
-        svg.appendChild(circle); 
-    }
+            // let circle1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            // circle1.setAttribute("cx",x1);  
+            // circle1.setAttribute("cy",y1);
+            // circle1.setAttribute("r",radius);
+            // circle1.setAttribute("fill",color);        
+            // svg.appendChild(circle1);      
 
+            const xOffsetS = (thickness/2)*Math.cos(Math.atan(slope));
+            const yOffsetS = (thickness/2)*Math.sin(Math.atan(slope));
+            const lineEdgeX = x1+xOffsetS;
+            const lineEdgeY = y1+yOffsetS;
+            const newRight1 = (lineEdgeX+xOffset) + "," + (lineEdgeY-yOffset); 
+            const newLeft1 = (lineEdgeX-xOffset) + "," + (lineEdgeY+yOffset);
 
-}
-/**
- * Given the x,y coordinates of a line's start and end points,
- * and the desired thickness, generate a polygon rectangle
- */
-function lineToRectangleOld(x1,y1,x2,y2,thickness, color, sepThickness, direction, rising, svg) {
-    //TODO: Implement so this also can draw horizontal lines (such as for flattened 1 throws)
+            // The point defined by newRight1 will work where lines intersect at 90 degree angles.
+            // At other angles, the separator may cover part of the previous line that we don't
+            // want to be covered. Therefore, some extra math is required. Instead of having an edge
+            // that forms a right angle with the side, we need an edge that is parallel to the previous line.
+            const previousLineSlope = (-1) * slope;
+            const previousLineX1 = (down == -1) ? lineEdgeX-xOffset : lineEdgeX+xOffset;
+            const previousLineY1 = (down == -1) ? lineEdgeY+yOffset : lineEdgeY-yOffset;
+            // Previous line's equation is: y = previousLineSlope * x + (previousLineY1 - slope*previousLineX1)
 
-    const numThickness = +thickness;
-    const numSepThickness = sepThickness ? +sepThickness : 0;
-    const slope = (y2-y1)/(x2-x1);
+            const currentLineX1 = (down == -1) ? lineEdgeX+xOffset : lineEdgeX-xOffset;
+            const currentLineY1 = (down == -1) ? lineEdgeY-yOffset : lineEdgeY+yOffset;
+            // Current line's equation is: y = slope * x + (currentLineY1 - slope*currentLineX1)
 
-    const sideA = ((numThickness+numSepThickness)/2);
-    const hypotenuse = sideA * slope;
-
-    const skewedLeftX1 = x1 + hypotenuse;
-    const skewedRightX1 = x1 - hypotenuse;
-    const skewedLeftX2 = x2 + hypotenuse;
-    const skewedRightX2 = x2 - hypotenuse;
-
-    const a = (numThickness+numSepThickness)/2 * Math.sin(Math.atan(slope));
-    const b = (numThickness+numSepThickness)/2 * Math.cos(Math.atan(slope));
-
-    const lineX = (rising) ? x1 - b : x1 + b;
-    const lineY = (rising) ? y1 - a : y1 + a;
-    const upperCurve = lineX + "," + lineY;
-    if (svg) {
+            // Calculate x value where the lines intersect:
+            // previousLineSlope * x + (previousLineY1 - slope*previousLineX1) = currentLineSlope * x + (currentLineY1 - slope*currentLineX1)
+            const interceptX = (currentLineY1 - slope*currentLineX1 - previousLineY1 + previousLineSlope*previousLineX1) / (previousLineSlope-slope);
+            const interceptY = slope * interceptX + (currentLineY1 - slope*currentLineX1); 
+            const intercept = interceptX + "," + interceptY;
 
 
-        // let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        // circle.setAttribute("cx",lineX);  
-        // circle.setAttribute("cy",lineY);
-        // circle.setAttribute("r",5);
-        // circle.setAttribute("fill","green")        
-        // svg.appendChild(circle);
-
-        let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("cx",x1);  
-        circle.setAttribute("cy",y1);
-        circle.setAttribute("r",(numThickness)/2);
-        circle.setAttribute("fill","red")        
-        svg.appendChild(circle);
-
-    }
-
-
-    const xIntercept = (x1 + skewedRightX1)/2; 
-    const yIntercept = (-1)*slope*(xIntercept-x1)+y1;
-
-    const xOffset = xIntercept - x1;
-    const yOffset = yIntercept - y1;
-
-    let upperRight = skewedRightX1 + "," + y1;
-    let upperLeft = skewedLeftX1 + "," + y1;
-    let lowerRight = skewedRightX2 + "," + y2;
-    let lowerLeft = skewedLeftX2 + "," + y2;
-
-
-    upperRight = xIntercept + "," + yIntercept;
-    upperLeft = (x1-xOffset) + "," + (y1-yOffset);
-    lowerRight = (x2+xOffset) + "," + (y2+yOffset);
-    lowerLeft = (x2-xOffset) + "," + (y2-yOffset);
-
-    const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-    polygon.setAttribute("stroke-width","0");
-    if (numSepThickness) {
-        if (direction == -1) {
-            const b1 = y1 - ((1)*slope*skewedLeftX1);
-            const b2 = y1 - ((-1)*slope*skewedRightX1);
-            const crossX = (b2-b1)/(2*slope);
-            const crossY = (slope*crossX) + b1;
-            upperLeft = crossX + "," + crossY;
-
-            const b3 = y2 - ((1)*slope*skewedRightX2);
-            const b4 = y2 - ((-1)*slope*skewedLeftX2);
-            const crossX2 = (b4-b3)/(2*slope);
-            const crossY2 = (slope*crossX2) + b3;
-            lowerRight = crossX2 + "," + crossY2;
-
-            if (svg) {
-
-                // goal: want lowerLeft to have an x coordinate of x2+xOffset
-                // and a y coordinate that connects the line to this dot.
-
-                // let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                // circle.setAttribute("cx",x2);  
-                // circle.setAttribute("cy",y2-yOffset);
-                // circle.setAttribute("r",5);
-                // circle.setAttribute("fill","red")        
-                // svg.appendChild(circle);
-            }
-        } else {
-            const b1 = y1 - ((1)*slope*skewedRightX1);
-            const b2 = y1 - ((-1)*slope*skewedLeftX1);
-            const crossX = (b2-b1)/(2*slope);
-            const crossY = (slope*crossX) + b1;
-            upperRight = crossX + "," + crossY;
-
-            const b3 = y2 - ((1)*slope*skewedLeftX2);
-            const b4 = y2 - ((-1)*slope*skewedRightX2);
-            const crossX2 = (b4-b3)/(2*slope);
-            const crossY2 = (slope*crossX2) + b3;
-            lowerLeft = crossX2 + "," + crossY2;
+            // Only do this when connecting two throws ^^ (at non-90 angle)
+            // polygon.setAttribute("points",newRight1+" "+newLeft1+" "+left2+" "+right2)
+            const points = (down == -1) ? intercept+" "+newLeft1+" "+left2+" "+right2 : newRight1+" "+intercept+" "+left2+" "+right2;
+            polygon.setAttribute("points",points);
+            polygon.setAttribute("stroke-width",2);
         }
-
-        polygon.setAttribute("stroke-width","2");
-        polygon.setAttribute("stroke","blue");
-        polygon.setAttribute("fill-opacity",.3);
     }
-
-
-
-
-
-    const points = upperRight + " " + upperLeft + " " + lowerLeft + " " + lowerRight;
-    polygon.setAttribute("fill",color);
-    polygon.setAttribute("points", points);
-
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("stroke-width","0"); 
-    path.setAttribute("fill",color);
-    // path.setAttribute("d", "M"+startRight + " L" + startLeft + " L"+peakLeft + " L" + peakRight + " L" + endRight + " L"+ endLeft + " L" + lowerPeak + " Z");
-    path.setAttribute("d", "M"+upperRight + " Q" + upperCurve + " " + upperLeft + " L" + lowerLeft + " L" + lowerRight + " Z");
-    return polygon;
-    // return path;
+    svg.appendChild(polygon);
 }
+
+
+
 
 function getInput() {
     showValueAtPeak = document.getElementById("showValueAtPeakCheck").checked;
