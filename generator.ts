@@ -21,7 +21,6 @@ let valueOutlineColor:string = "black";
 let valueTextColor:string = "black";
 let valueTextSize:number = 20;
 let showOnlyFirstThrows:boolean = false;
-let pointy:boolean = false;
 let flatten:boolean = true;
 
 
@@ -53,13 +52,17 @@ function refresh() {
         lastLandingBeat = Math.max(...landings) + 1;
     }
 
+    let height = 1000;
+    if (unidirectional) {
+        height = 600;
+    }
     const width = widthIncrement + lastLandingBeat * widthIncrement;
     let siteswapContainer: HTMLElement = document.getElementById('siteswapContainer');
     siteswapContainer.innerHTML = '';
-    let svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("id","siteswap");
-    svg.setAttribute("viewBox", "0 0 "+width+" 1000");
-    svg.setAttribute("style","background-color:"+backgroundColor);
+    let siteswapSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    siteswapSvg.setAttribute("id","siteswap");
+    siteswapSvg.setAttribute("viewBox", "0 0 "+width+" "+height);
+    siteswapSvg.setAttribute("style","background-color:"+backgroundColor);
 
     if (showCenterLine) {
         let lineCenter = document.createElementNS("http://www.w3.org/2000/svg", "line"); 
@@ -69,10 +72,17 @@ function refresh() {
         lineCenter.setAttribute("y1",String(500));
         lineCenter.setAttribute("x2",String(widthIncrement + widthIncrement * pattern.length + pattern[pattern.length-1]));
         lineCenter.setAttribute("y2",String(500));
-        svg.appendChild(lineCenter);
+        siteswapSvg.appendChild(lineCenter);
     }
 
+    const fullWidth = lineWidth + separatorWidth;
     let corners = [];
+
+    const highestThrow = Math.max(...pattern);
+    let heightMultiplier = 100;
+    if (highestThrow > 9) {
+        heightMultiplier = (9 / highestThrow) * 100;
+    }
 
     for (let i=0; i<pattern.length; i++) {
         let direction = -1;
@@ -93,12 +103,6 @@ function refresh() {
         }
         if (invert) {
             direction = direction * (-1);
-        }
-
-        const highestThrow = Math.max(...pattern);
-        let heightMultiplier = 100;
-        if (highestThrow > 9) {
-            heightMultiplier = (9 / highestThrow) * 100;
         }
 
         let firstThrow = true;
@@ -123,7 +127,6 @@ function refresh() {
 
 
         // Draw separator line
-        const fullWidth = lineWidth + separatorWidth;
 
         if (firstThrow) {
             let sepLineStartPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -134,7 +137,7 @@ function refresh() {
             // sepLineStartPoint.setAttribute("stroke-width","2"); //debug
             // sepLineStartPoint.setAttribute("stroke","blue"); //debug
             // sepLineStartPoint.setAttribute("opacity","0.5"); //debug
-            svg.appendChild(sepLineStartPoint); 
+            siteswapSvg.appendChild(sepLineStartPoint); 
         }
 
         let sepLineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -145,7 +148,7 @@ function refresh() {
         // sepLineEndPoint.setAttribute("stroke-width","2"); //debug
         // sepLineEndPoint.setAttribute("stroke","blue"); //debug
         // sepLineEndPoint.setAttribute("opacity","0.5"); //debug       
-        svg.appendChild(sepLineEndPoint);
+        siteswapSvg.appendChild(sepLineEndPoint);
 
         let sepLineEndPoint2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         sepLineEndPoint2.setAttribute("cx",String(endX));
@@ -155,8 +158,8 @@ function refresh() {
         // sepLineEndPoint2.setAttribute("stroke-width","2"); //debug
         // sepLineEndPoint2.setAttribute("stroke","blue"); //debug
         // sepLineEndPoint2.setAttribute("opacity","0.5"); //debug    
-        svg.appendChild(sepLineEndPoint2);
-        svg.appendChild(generateLine(peakX,peakY,endX,endY,lineWidth,lineColor,null, svg));
+        siteswapSvg.appendChild(sepLineEndPoint2);
+        siteswapSvg.appendChild(generateLine(peakX,peakY,endX,endY,lineWidth,lineColor,null, siteswapSvg));
 
         let fixCorner = null;
         if ((catchOrigin[i] % 2 == 0 || unidirectional) && corners[i] != null){
@@ -167,8 +170,8 @@ function refresh() {
             }
         }
         
-        svg.appendChild(generateLine(startX,startY,peakX,peakY,fullWidth,separatorColor,fixCorner, svg));
-        svg.appendChild(generateLine(peakX,peakY,endX,endY,fullWidth,separatorColor,null, svg));
+        siteswapSvg.appendChild(generateLine(startX,startY,peakX,peakY,fullWidth,separatorColor,fixCorner, siteswapSvg));
+        siteswapSvg.appendChild(generateLine(peakX,peakY,endX,endY,fullWidth,separatorColor,null, siteswapSvg));
 
         // Draw siteswap line
         let lineStartPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -176,24 +179,24 @@ function refresh() {
         lineStartPoint.setAttribute("cy",String(startY));
         lineStartPoint.setAttribute("r",String(lineWidth/2));
         lineStartPoint.setAttribute("fill",lineColor);        
-        svg.appendChild(lineStartPoint);
+        siteswapSvg.appendChild(lineStartPoint);
 
         let lineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         lineEndPoint.setAttribute("cx",String(peakX));
         lineEndPoint.setAttribute("cy",String(peakY));
         lineEndPoint.setAttribute("r",String(lineWidth/2));
         lineEndPoint.setAttribute("fill",lineColor);        
-        svg.appendChild(lineEndPoint);
+        siteswapSvg.appendChild(lineEndPoint);
 
-        svg.appendChild(generateLine(startX,startY,peakX,peakY,lineWidth,lineColor,null, svg));
+        siteswapSvg.appendChild(generateLine(startX,startY,peakX,peakY,lineWidth,lineColor,null, siteswapSvg));
 
         let lineEndPoint2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         lineEndPoint2.setAttribute("cx",String(endX));
         lineEndPoint2.setAttribute("cy",String(endY));
         lineEndPoint2.setAttribute("r",String(lineWidth/2));
         lineEndPoint2.setAttribute("fill",lineColor);        
-        svg.appendChild(lineEndPoint2);
-        svg.appendChild(generateLine(peakX,peakY,endX,endY,lineWidth,lineColor,null, svg));
+        siteswapSvg.appendChild(lineEndPoint2);
+        siteswapSvg.appendChild(generateLine(peakX,peakY,endX,endY,lineWidth,lineColor,null, siteswapSvg));
 
         // In order to correctly draw the separator for the line that connects
         // with this one, we need to save this line's info
@@ -220,7 +223,7 @@ function refresh() {
             label.setAttribute("stroke",valueOutlineColor);
             label.setAttribute("stroke-width","2");
             label.setAttribute("fill",valueBackgroundColor);        
-            svg.appendChild(label);
+            siteswapSvg.appendChild(label);
     
             let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
             text.setAttribute("x",String(peakX));
@@ -230,7 +233,7 @@ function refresh() {
             text.setAttribute("text-anchor","middle");
             text.setAttribute("alignment-baseline","middle");
             text.textContent = intToSiteswapDigit(pattern[i]);
-            svg.appendChild(text);
+            siteswapSvg.appendChild(text);
         }
     
 
@@ -243,7 +246,7 @@ function refresh() {
                 label.setAttribute("stroke",valueOutlineColor);
                 label.setAttribute("stroke-width","2");
                 label.setAttribute("fill",valueBackgroundColor);
-                svg.appendChild(label);
+                siteswapSvg.appendChild(label);
         
                 let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 text.setAttribute("x",String(startX));
@@ -253,15 +256,248 @@ function refresh() {
                 text.setAttribute("font-size",String(valueTextSize));
                 text.setAttribute("fill",valueTextColor);
                 text.textContent = intToSiteswapDigit(pattern[i]);
-                svg.appendChild(text);
+                siteswapSvg.appendChild(text);
             }
         }    
     }
 
+    siteswapContainer.appendChild(siteswapSvg);
+
+    // Ladder diagram
+    const ladderWidth = 400;
+
+    let ladderContainer = document.getElementById('ladderContainer');
+    ladderContainer.innerHTML = '';
+
+    let ladderSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    ladderSvg.setAttribute("id","ladder");
+    ladderSvg.setAttribute("viewBox", "0 0 "+width+" "+ (100+ladderWidth));
+    ladderSvg.setAttribute("style","background-color:"+backgroundColor);
+
+    const centerPoint = (ladderWidth/2) + 50;
+    if (showCenterLine) {
+        let ladderCenterLine = document.createElementNS("http://www.w3.org/2000/svg", "line"); 
+        ladderCenterLine.setAttribute("stroke",centerLineColor);
+        ladderCenterLine.setAttribute("stroke-width",String(centerLineWidth));
+        ladderCenterLine.setAttribute("x1",String(widthIncrement));
+        ladderCenterLine.setAttribute("y1",String(centerPoint));
+        ladderCenterLine.setAttribute("x2",String(widthIncrement + widthIncrement * pattern.length + pattern[pattern.length-1]));
+        ladderCenterLine.setAttribute("y2",String(centerPoint));
+        ladderSvg.appendChild(ladderCenterLine);
+    }
+
+    for (let i=0; i<pattern.length; i++) {
+        let side = (i % 2);
+        if (invert) {
+            side = (i+1) % 2;
+        }
+        const crosses = (pattern[i] % 2);
     
+        const startX = widthIncrement + (widthIncrement * i);
+        const startY = 50 + (ladderWidth * side);
+        const endX = startX + (widthIncrement * pattern[i]);
+        const peakX = startX + ((widthIncrement * pattern[i]) / 2);
+        let peakY = centerPoint;
+        //TODO: fix this so the heightMultiplier actually works for high throw values
+        const throwHeight = (ladderWidth / 20) * pattern[i] * (heightMultiplier/100);
+        if (side) {
+            peakY = centerPoint - throwHeight;
+        } else {
+            peakY = centerPoint + throwHeight;
+        }
+        let firstThrow = true;
+            for (let j=i-1; j>=0; j--) {
+                if (pattern[j] == i-j) {
+                    firstThrow = false;
+                }
+        }
+
+        if (pattern[i] % 2) {
+            // Draw straight lines that cross from one side to the other
+            var newSide = 0;
+            if (side) {
+                newSide = 0;
+            } else {
+                newSide = 1;
+            }
+            const endY = 50 + (ladderWidth * newSide);
+
+            if (firstThrow) {
+                let sepLineStartPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                sepLineStartPoint.setAttribute("cx",String(startX));
+                sepLineStartPoint.setAttribute("cy",String(startY));
+                sepLineStartPoint.setAttribute("r",String(fullWidth/2));
+                sepLineStartPoint.setAttribute("fill",separatorColor);
+                // sepLineStartPoint.setAttribute("stroke-width","2"); //debug
+                // sepLineStartPoint.setAttribute("stroke","blue"); //debug
+                // sepLineStartPoint.setAttribute("opacity","0.5"); //debug
+                ladderSvg.appendChild(sepLineStartPoint); 
+            }
+    
+            let sepLineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            sepLineEndPoint.setAttribute("cx",String(endX));
+            sepLineEndPoint.setAttribute("cy",String(endY));
+            sepLineEndPoint.setAttribute("r",String(fullWidth/2));
+            sepLineEndPoint.setAttribute("fill",separatorColor); 
+            // sepLineEndPoint.setAttribute("stroke-width","2"); //debug
+            // sepLineEndPoint.setAttribute("stroke","blue"); //debug
+            // sepLineEndPoint.setAttribute("opacity","0.5"); //debug       
+            ladderSvg.appendChild(sepLineEndPoint);
+
+            //TODO: implmenet fixCorner logic for ladder diagram
+            ladderSvg.appendChild(generateLine(startX,startY,endX,endY,fullWidth,separatorColor,null, ladderSvg));
+            // ladderSvg.appendChild(generateLine(startX,startY,endX,endY,fullWidth,separatorColor,fixCorner, ladderSvg));
+
+            let lineStartPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            lineStartPoint.setAttribute("cx",String(startX));
+            lineStartPoint.setAttribute("cy",String(startY));
+            lineStartPoint.setAttribute("r",String(lineWidth/2));
+            lineStartPoint.setAttribute("fill",lineColor);        
+            ladderSvg.appendChild(lineStartPoint);
+
+            let lineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            lineEndPoint.setAttribute("cx",String(endX));
+            lineEndPoint.setAttribute("cy",String(endY));
+            lineEndPoint.setAttribute("r",String(lineWidth/2));
+            lineEndPoint.setAttribute("fill",lineColor);        
+            ladderSvg.appendChild(lineEndPoint);
+
+            ladderSvg.appendChild(generateLine(startX,startY,endX,endY,lineWidth,lineColor,null, ladderSvg));
+
+            let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("stroke","blue");
+            line.setAttribute("stroke-width","2");
+            line.setAttribute("x1",String(startX));
+            line.setAttribute("y1",String(startY));
+            line.setAttribute("x2",String(endX));
+            line.setAttribute("y2",String(endY));
+            ladderSvg.appendChild(line);
+        } else {
+            // Draw lines that start and end on the same side, peaking somewhere in the middle
+            var newSide = 0;
+            if (side) {
+                newSide = 0;
+            } else {
+                newSide = 1;
+            }
+            if (flatten && pattern[i] == 2) {
+                peakY = startY;
+            } else {
+                if (side) {
+                    peakY = startY - (18*pattern[i]) - 50;
+                } else {
+                    peakY = startY + (18*pattern[i]) + 50;
+                }
+            }
 
 
-    siteswapContainer.appendChild(svg);
+            if (firstThrow) {
+                let sepLineStartPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                sepLineStartPoint.setAttribute("cx",String(startX));
+                sepLineStartPoint.setAttribute("cy",String(startY));
+                sepLineStartPoint.setAttribute("r",String(fullWidth/2));
+                sepLineStartPoint.setAttribute("fill",separatorColor);
+                // sepLineStartPoint.setAttribute("stroke-width","2"); //debug
+                // sepLineStartPoint.setAttribute("stroke","blue"); //debug
+                // sepLineStartPoint.setAttribute("opacity","0.5"); //debug
+                ladderSvg.appendChild(sepLineStartPoint); 
+            }
+    
+            let sepLineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            sepLineEndPoint.setAttribute("cx",String(peakX));
+            sepLineEndPoint.setAttribute("cy",String(peakY));
+            sepLineEndPoint.setAttribute("r",String(fullWidth/2));
+            sepLineEndPoint.setAttribute("fill",separatorColor); 
+            // sepLineEndPoint.setAttribute("stroke-width","2"); //debug
+            // sepLineEndPoint.setAttribute("stroke","blue"); //debug
+            // sepLineEndPoint.setAttribute("opacity","0.5"); //debug       
+            ladderSvg.appendChild(sepLineEndPoint);
+    
+            let sepLineEndPoint2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            sepLineEndPoint2.setAttribute("cx",String(endX));
+            sepLineEndPoint2.setAttribute("cy",String(startY));
+            sepLineEndPoint2.setAttribute("r",String(fullWidth/2));
+            sepLineEndPoint2.setAttribute("fill",separatorColor);    
+            // sepLineEndPoint2.setAttribute("stroke-width","2"); //debug
+            // sepLineEndPoint2.setAttribute("stroke","blue"); //debug
+            // sepLineEndPoint2.setAttribute("opacity","0.5"); //debug    
+            ladderSvg.appendChild(sepLineEndPoint2);
+            ladderSvg.appendChild(generateLine(peakX,peakY,endX,startY,lineWidth,lineColor,null, ladderSvg));
+    
+            let fixCorner = null;
+            // if ((catchOrigin[i] % 2 == 0 || unidirectional) && corners[i] != null){
+            //     if (direction == -1) {
+            //         fixCorner = {point1: corners[i].upperLeft, point2: corners[i].lowerLeft, clockwise: true};
+            //     } else {
+            //         fixCorner = {point1: corners[i].upperRight, point2: corners[i].lowerRight, clockwise: false};
+            //     }
+            // }
+            
+            ladderSvg.appendChild(generateLine(startX,startY,peakX,peakY,fullWidth,separatorColor,fixCorner, ladderSvg));
+            ladderSvg.appendChild(generateLine(peakX,peakY,endX,startY,fullWidth,separatorColor,null, ladderSvg));
+
+
+
+            let lineStartPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            lineStartPoint.setAttribute("cx",String(startX));
+            lineStartPoint.setAttribute("cy",String(startY));
+            lineStartPoint.setAttribute("r",String(lineWidth/2));
+            lineStartPoint.setAttribute("fill",lineColor);        
+            ladderSvg.appendChild(lineStartPoint);
+
+            let lineMidPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            lineMidPoint.setAttribute("cx",String(peakX));
+            lineMidPoint.setAttribute("cy",String(peakY));
+            lineMidPoint.setAttribute("r",String(lineWidth/2));
+            lineMidPoint.setAttribute("fill",lineColor);        
+            ladderSvg.appendChild(lineMidPoint);
+
+            let lineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            lineEndPoint.setAttribute("cx",String(endX));
+            lineEndPoint.setAttribute("cy",String(startY));
+            lineEndPoint.setAttribute("r",String(lineWidth/2));
+            lineEndPoint.setAttribute("fill",lineColor);        
+            ladderSvg.appendChild(lineEndPoint);
+
+            ladderSvg.appendChild(generateLine(startX,startY,peakX,peakY,lineWidth,lineColor,null, ladderSvg));
+            ladderSvg.appendChild(generateLine(peakX,peakY,endX,startY,lineWidth,lineColor,null, ladderSvg));
+
+            const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+startY;
+
+            let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            polyline.setAttribute("stroke","blue");
+            polyline.setAttribute("stroke-width","2");
+            polyline.setAttribute("fill-opacity","0");
+            polyline.setAttribute("points", points);;
+            ladderSvg.appendChild(polyline);
+
+        }
+
+
+        if (showValueAtThrow) {
+            if (!showOnlyFirstThrows || firstThrow) {
+                let label = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                label.setAttribute("cx",String(startX));
+                label.setAttribute("cy",String(startY));
+                label.setAttribute("r",String(valueSize));
+                label.setAttribute("stroke",String(valueOutlineColor));
+                label.setAttribute("stroke-width","2");
+                label.setAttribute("fill",valueBackgroundColor)        
+                ladderSvg.appendChild(label);
+        
+                let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x",String(startX));
+                text.setAttribute("y",String(startY));
+                text.setAttribute("font-size",String(valueTextSize));
+                text.setAttribute("fill",valueTextColor);
+                text.setAttribute("text-anchor","middle");
+                text.setAttribute("alignment-baseline","middle");
+                text.textContent = intToSiteswapDigit(pattern[i]);
+                ladderSvg.appendChild(text);
+            }
+        }
+    }
+    ladderContainer.appendChild(ladderSvg);
 }
 
 function generateLine(x1:number, y1:number, x2:number, y2:number, thickness:number, color:string, previousLine, svg) {
@@ -384,7 +620,6 @@ function getInput() {
 
     catching = (document.getElementById("catchingCheck") as HTMLInputElement).checked;
     unidirectional = (document.getElementById("unidirectionalCheck") as HTMLInputElement).checked; 
-    pointy = (document.getElementById("pointyCheck") as HTMLInputElement).checked; 
     invert = (document.getElementById("invertCheck") as HTMLInputElement).checked; 
     showOnlyFirstThrows = (document.getElementById("showOnlyFirstThrowsCheck") as HTMLInputElement).checked;
     flatten = (document.getElementById("flattenCheck") as HTMLInputElement).checked;
@@ -410,7 +645,6 @@ function setInput() {
     (document.getElementById("showCenterLineCheck") as HTMLInputElement).checked = showCenterLine; 
     (document.getElementById("catchingCheck") as HTMLInputElement).checked = catching; 
     (document.getElementById("unidirectionalCheck") as HTMLInputElement).checked = unidirectional; 
-    (document.getElementById("pointyCheck") as HTMLInputElement).checked = pointy; 
     (document.getElementById("invertCheck") as HTMLInputElement).checked = invert; 
     (document.getElementById("showOnlyFirstThrowsCheck") as HTMLInputElement).checked = showOnlyFirstThrows; 
     (document.getElementById("flattenCheck") as HTMLInputElement).checked = flatten; 
