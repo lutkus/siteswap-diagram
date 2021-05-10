@@ -14,7 +14,7 @@ let showCenterLine:boolean = false;
 let catching:boolean = false;
 let unidirectional:boolean = false;
 let invert:boolean = false;
-let widthIncrement:number = 120;
+let widthIncrement:number = 70;
 let valueSize:number = 15;
 let valueBackgroundColor:string = "white";
 let valueOutlineColor:string = "black";
@@ -286,6 +286,8 @@ function refresh() {
         ladderSvg.appendChild(ladderCenterLine);
     }
 
+    corners = [];
+
     for (let i=0; i<pattern.length; i++) {
         let side = (i % 2);
         if (invert) {
@@ -344,9 +346,16 @@ function refresh() {
             // sepLineEndPoint.setAttribute("opacity","0.5"); //debug       
             ladderSvg.appendChild(sepLineEndPoint);
 
-            //TODO: implmenet fixCorner logic for ladder diagram
-            ladderSvg.appendChild(generateLine(startX,startY,endX,endY,fullWidth,separatorColor,null, ladderSvg));
-            // ladderSvg.appendChild(generateLine(startX,startY,endX,endY,fullWidth,separatorColor,fixCorner, ladderSvg));
+            let fixCorner = null;
+            if (corners[i] != null){
+                if (side ==1 ) {
+                    fixCorner = {point1: corners[i].upperLeft, point2: corners[i].lowerLeft, clockwise: true};
+                } else {
+                    fixCorner = {point1: corners[i].upperRight, point2: corners[i].lowerRight, clockwise: false};
+                }
+            }
+
+            ladderSvg.appendChild(generateLine(startX,startY,endX,endY,fullWidth,separatorColor,fixCorner, ladderSvg));
 
             let lineStartPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             lineStartPoint.setAttribute("cx",String(startX));
@@ -364,14 +373,19 @@ function refresh() {
 
             ladderSvg.appendChild(generateLine(startX,startY,endX,endY,lineWidth,lineColor,null, ladderSvg));
 
-            let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            line.setAttribute("stroke","blue");
-            line.setAttribute("stroke-width","2");
-            line.setAttribute("x1",String(startX));
-            line.setAttribute("y1",String(startY));
-            line.setAttribute("x2",String(endX));
-            line.setAttribute("y2",String(endY));
-            ladderSvg.appendChild(line);
+            // In order to correctly draw the separator for the line that connects
+            // with this one, we need to save this line's info
+            const infoToSave = generateBreadthPoints({x:startX, y:startY}, {x:endX, y:endY}, fullWidth); 
+            corners[i+pattern[i]] = infoToSave;
+
+            // let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            // line.setAttribute("stroke","blue");
+            // line.setAttribute("stroke-width","2");
+            // line.setAttribute("x1",String(startX));
+            // line.setAttribute("y1",String(startY));
+            // line.setAttribute("x2",String(endX));
+            // line.setAttribute("y2",String(endY));
+            // ladderSvg.appendChild(line);
         } else {
             // Draw lines that start and end on the same side, peaking somewhere in the middle
             var newSide = 0;
@@ -422,16 +436,15 @@ function refresh() {
             // sepLineEndPoint2.setAttribute("stroke","blue"); //debug
             // sepLineEndPoint2.setAttribute("opacity","0.5"); //debug    
             ladderSvg.appendChild(sepLineEndPoint2);
-            ladderSvg.appendChild(generateLine(peakX,peakY,endX,startY,lineWidth,lineColor,null, ladderSvg));
     
             let fixCorner = null;
-            // if ((catchOrigin[i] % 2 == 0 || unidirectional) && corners[i] != null){
-            //     if (direction == -1) {
-            //         fixCorner = {point1: corners[i].upperLeft, point2: corners[i].lowerLeft, clockwise: true};
-            //     } else {
-            //         fixCorner = {point1: corners[i].upperRight, point2: corners[i].lowerRight, clockwise: false};
-            //     }
-            // }
+            if (corners[i] != null){
+                if (side ==1 ) {
+                    fixCorner = {point1: corners[i].upperLeft, point2: corners[i].lowerLeft, clockwise: true};
+                } else {
+                    fixCorner = {point1: corners[i].upperRight, point2: corners[i].lowerRight, clockwise: false};
+                }
+            }
             
             ladderSvg.appendChild(generateLine(startX,startY,peakX,peakY,fullWidth,separatorColor,fixCorner, ladderSvg));
             ladderSvg.appendChild(generateLine(peakX,peakY,endX,startY,fullWidth,separatorColor,null, ladderSvg));
@@ -462,14 +475,18 @@ function refresh() {
             ladderSvg.appendChild(generateLine(startX,startY,peakX,peakY,lineWidth,lineColor,null, ladderSvg));
             ladderSvg.appendChild(generateLine(peakX,peakY,endX,startY,lineWidth,lineColor,null, ladderSvg));
 
-            const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+startY;
+            // In order to correctly draw the separator for the line that connects
+            // with this one, we need to save this line's info
+            const infoToSave = generateBreadthPoints({x:peakX, y:peakY}, {x:endX, y:startY}, fullWidth); 
+            corners[i+pattern[i]] = infoToSave;
 
-            let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-            polyline.setAttribute("stroke","blue");
-            polyline.setAttribute("stroke-width","2");
-            polyline.setAttribute("fill-opacity","0");
-            polyline.setAttribute("points", points);;
-            ladderSvg.appendChild(polyline);
+            // const points = startX+","+startY+" "+peakX+","+peakY+" "+endX+","+startY;
+            // let polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            // polyline.setAttribute("stroke","blue");
+            // polyline.setAttribute("stroke-width","2");
+            // polyline.setAttribute("fill-opacity","0");
+            // polyline.setAttribute("points", points);;
+            // ladderSvg.appendChild(polyline);
 
         }
 
@@ -671,8 +688,11 @@ function disableInputs() {
     if (unidirectional) {
         (document.getElementById("catchingCheck") as HTMLInputElement).disabled = true;
         catching = false;
+        (document.getElementById("invertCheck") as HTMLInputElement).disabled = true;
+        invert = false;
     } else {
         (document.getElementById("catchingCheck") as HTMLInputElement).disabled = false;
+        (document.getElementById("invertCheck") as HTMLInputElement).disabled = false;
     }
 
     (document.getElementById("centerLineColorInput") as HTMLInputElement).disabled = !showCenterLine; 
