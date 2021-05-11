@@ -23,13 +23,17 @@ let valueTextSize:number = 25;
 let showOnlyFirstThrows:boolean = false;
 let flatten:boolean = true;
 
+const prefixes = ['line','value','separator','text'];
+let currentSelection = -1;
+let pattern = siteswap;
+
 
 setInput();
 refresh();
 disableInputs();
 
 function refresh() {
-    let pattern: number[] = siteswap;
+    pattern = siteswap;
     while (pattern.length < throws) {
         pattern = pattern.concat(siteswap);
     }
@@ -56,10 +60,15 @@ function refresh() {
     if (unidirectional) {
         height = 600;
     }
+
     const width = widthIncrement + lastLandingBeat * widthIncrement;
     let siteswapContainer: HTMLElement = document.getElementById('siteswapContainer');
     siteswapContainer.innerHTML = '';
     let siteswapSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    siteswapSvg.addEventListener('focus', () =>{
+        this.addEventListener('keyup', logKey);
+    });
+
     siteswapSvg.setAttribute("id","siteswap");
     siteswapSvg.setAttribute("viewBox", "0 0 "+width+" "+height);
     siteswapSvg.setAttribute("style","background-color:"+backgroundColor);
@@ -120,7 +129,7 @@ function refresh() {
         const peakX = startX + ((widthIncrement * pattern[i]) / 2);
         let peakY = centerPoint + catchSide*direction*(heightMultiplier * pattern[i] / 2);
     
-        if (flatten && pattern[i] == 1) {
+        if (flatten && pattern[i] <= 1) {
             peakY = centerPoint;
         }
 
@@ -159,7 +168,9 @@ function refresh() {
         // sepLineEndPoint2.setAttribute("stroke","blue"); //debug
         // sepLineEndPoint2.setAttribute("opacity","0.5"); //debug    
         siteswapSvg.appendChild(sepLineEndPoint2);
-        siteswapSvg.appendChild(generateLine(peakX,peakY,endX,endY,lineWidth,lineColor,null, siteswapSvg));
+        // let downLine = generateLine(peakX,peakY,endX,endY,lineWidth,lineColor,null, siteswapSvg);
+        // addListeners(downLine, i);
+        // siteswapSvg.appendChild(downLine);
 
         let fixCorner = null;
         if ((catchOrigin[i] % 2 == 0 || unidirectional) && corners[i] != null){
@@ -179,6 +190,7 @@ function refresh() {
         lineStartPoint.setAttribute("cy",String(startY));
         lineStartPoint.setAttribute("r",String(lineWidth/2));
         lineStartPoint.setAttribute("fill",lineColor);        
+        addListeners(lineStartPoint, 'line', i);
         siteswapSvg.appendChild(lineStartPoint);
 
         let lineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -186,17 +198,24 @@ function refresh() {
         lineEndPoint.setAttribute("cy",String(peakY));
         lineEndPoint.setAttribute("r",String(lineWidth/2));
         lineEndPoint.setAttribute("fill",lineColor);        
+        addListeners(lineEndPoint,'line', i);
         siteswapSvg.appendChild(lineEndPoint);
 
-        siteswapSvg.appendChild(generateLine(startX,startY,peakX,peakY,lineWidth,lineColor,null, siteswapSvg));
+        let upLine = generateLine(startX,startY,peakX,peakY,lineWidth,lineColor,null, siteswapSvg);
+        addListeners(upLine, 'line', i);
+        siteswapSvg.appendChild(upLine);
 
         let lineEndPoint2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         lineEndPoint2.setAttribute("cx",String(endX));
         lineEndPoint2.setAttribute("cy",String(endY));
         lineEndPoint2.setAttribute("r",String(lineWidth/2));
         lineEndPoint2.setAttribute("fill",lineColor);        
+        addListeners(lineEndPoint2,'line', i);
         siteswapSvg.appendChild(lineEndPoint2);
-        siteswapSvg.appendChild(generateLine(peakX,peakY,endX,endY,lineWidth,lineColor,null, siteswapSvg));
+
+        let downLine = generateLine(peakX,peakY,endX,endY,lineWidth,lineColor,null, siteswapSvg);
+        addListeners(downLine,'line', i);
+        siteswapSvg.appendChild(downLine);
 
         // In order to correctly draw the separator for the line that connects
         // with this one, we need to save this line's info
@@ -223,6 +242,7 @@ function refresh() {
             label.setAttribute("stroke",valueOutlineColor);
             label.setAttribute("stroke-width","2");
             label.setAttribute("fill",valueBackgroundColor);        
+            addListeners(label, 'value', i);
             siteswapSvg.appendChild(label);
     
             let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -233,6 +253,7 @@ function refresh() {
             text.setAttribute("text-anchor","middle");
             text.setAttribute("alignment-baseline","middle");
             text.textContent = intToSiteswapDigit(pattern[i]);
+            addListeners(text, 'text', i);
             siteswapSvg.appendChild(text);
         }
     
@@ -246,6 +267,7 @@ function refresh() {
                 label.setAttribute("stroke",valueOutlineColor);
                 label.setAttribute("stroke-width","2");
                 label.setAttribute("fill",valueBackgroundColor);
+                addListeners(label, 'value', i);
                 siteswapSvg.appendChild(label);
         
                 let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -256,6 +278,7 @@ function refresh() {
                 text.setAttribute("font-size",String(valueTextSize));
                 text.setAttribute("fill",valueTextColor);
                 text.textContent = intToSiteswapDigit(pattern[i]);
+                addListeners(text, 'text', i);
                 siteswapSvg.appendChild(text);
             }
         }    
@@ -266,11 +289,15 @@ function refresh() {
     // Ladder diagram
     const ladderWidth = 400;
     const throwStartingPoint = 50;
+    const throwBuffer = 40;
 
     let ladderContainer = document.getElementById('ladderContainer');
     ladderContainer.innerHTML = '';
 
     let ladderSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    ladderSvg.addEventListener('focus', function(){
+        this.addEventListener('keyup', logKey);
+    });
     ladderSvg.setAttribute("id","ladder");
     ladderSvg.setAttribute("viewBox", "0 0 "+width+" "+ (100+ladderWidth));
     ladderSvg.setAttribute("style","background-color:"+backgroundColor);
@@ -288,7 +315,6 @@ function refresh() {
     }
 
     corners = [];
-    const throwBuffer = 20;
     const maxPossibleHeight = centerPoint - throwStartingPoint - throwBuffer;
 
     heightMultiplier = maxPossibleHeight / 9;
@@ -361,7 +387,8 @@ function refresh() {
             lineStartPoint.setAttribute("cx",String(startX));
             lineStartPoint.setAttribute("cy",String(startY));
             lineStartPoint.setAttribute("r",String(lineWidth/2));
-            lineStartPoint.setAttribute("fill",lineColor);        
+            lineStartPoint.setAttribute("fill",lineColor);
+            addListeners(lineStartPoint,'line', i);
             ladderSvg.appendChild(lineStartPoint);
 
             let lineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -369,9 +396,13 @@ function refresh() {
             lineEndPoint.setAttribute("cy",String(endY));
             lineEndPoint.setAttribute("r",String(lineWidth/2));
             lineEndPoint.setAttribute("fill",lineColor);        
+            addListeners(lineEndPoint, 'line', i);
             ladderSvg.appendChild(lineEndPoint);
 
-            ladderSvg.appendChild(generateLine(startX,startY,endX,endY,lineWidth,lineColor,null, ladderSvg));
+            let currentLine = generateLine(startX,startY,endX,endY,lineWidth,lineColor,null, ladderSvg);
+            addListeners(currentLine,'line', i);
+            currentLine.classList.add(String(i));
+            ladderSvg.appendChild(currentLine);
 
             // In order to correctly draw the separator for the line that connects
             // with this one, we need to save this line's info
@@ -395,7 +426,7 @@ function refresh() {
                 newSide = 1;
             }
             let peakY;
-            if (flatten && pattern[i] == 2) {
+            if (flatten && (pattern[i] == 2) || pattern[i] == 0) {
                 peakY = startY;
             } else {
                 if (side) {
@@ -456,25 +487,33 @@ function refresh() {
             lineStartPoint.setAttribute("cx",String(startX));
             lineStartPoint.setAttribute("cy",String(startY));
             lineStartPoint.setAttribute("r",String(lineWidth/2));
-            lineStartPoint.setAttribute("fill",lineColor);        
+            lineStartPoint.setAttribute("fill",lineColor);
+            addListeners(lineStartPoint, 'line', i);
             ladderSvg.appendChild(lineStartPoint);
 
             let lineMidPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             lineMidPoint.setAttribute("cx",String(peakX));
             lineMidPoint.setAttribute("cy",String(peakY));
             lineMidPoint.setAttribute("r",String(lineWidth/2));
-            lineMidPoint.setAttribute("fill",lineColor);        
+            lineMidPoint.setAttribute("fill",lineColor);
+            addListeners(lineMidPoint,'line', i);
             ladderSvg.appendChild(lineMidPoint);
 
             let lineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             lineEndPoint.setAttribute("cx",String(endX));
             lineEndPoint.setAttribute("cy",String(startY));
             lineEndPoint.setAttribute("r",String(lineWidth/2));
-            lineEndPoint.setAttribute("fill",lineColor);        
+            lineEndPoint.setAttribute("fill",lineColor);
+            addListeners(lineEndPoint,'line', i);
             ladderSvg.appendChild(lineEndPoint);
 
-            ladderSvg.appendChild(generateLine(startX,startY,peakX,peakY,lineWidth,lineColor,null, ladderSvg));
-            ladderSvg.appendChild(generateLine(peakX,peakY,endX,startY,lineWidth,lineColor,null, ladderSvg));
+            let lineUp = generateLine(startX,startY,peakX,peakY,lineWidth,lineColor,null, ladderSvg);
+            addListeners(lineUp,'line', i);
+            ladderSvg.appendChild(lineUp);
+
+            let lineDown = generateLine(peakX,peakY,endX,startY,lineWidth,lineColor,null, ladderSvg);
+            addListeners(lineDown,'line', i);
+            ladderSvg.appendChild(lineDown);
 
             // In order to correctly draw the separator for the line that connects
             // with this one, we need to save this line's info
@@ -501,6 +540,7 @@ function refresh() {
                 label.setAttribute("stroke",String(valueOutlineColor));
                 label.setAttribute("stroke-width","2");
                 label.setAttribute("fill",valueBackgroundColor)        
+                addListeners(label, 'value', i);
                 ladderSvg.appendChild(label);
         
                 let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -511,11 +551,14 @@ function refresh() {
                 text.setAttribute("text-anchor","middle");
                 text.setAttribute("alignment-baseline","middle");
                 text.textContent = intToSiteswapDigit(pattern[i]);
+                addListeners(text, 'text', i);
                 ladderSvg.appendChild(text);
             }
         }
     }
     ladderContainer.appendChild(ladderSvg);
+
+    click(currentSelection, true);
 }
 
 function generateLine(x1:number, y1:number, x2:number, y2:number, thickness:number, color:string, previousLine, svg) {
@@ -621,6 +664,136 @@ function intToSiteswapDigit(digit: number): string {
 function pointToString(point): string {
     return point.x + "," + point.y + " ";
 }
+
+function addListeners(element: SVGElement, prefix: string, throwIndex: number) {
+    element.addEventListener('mouseover', function(){mouseOverEffect(throwIndex)}, false);
+    element.addEventListener('mouseout', function(){mouseOutEffect(throwIndex)}, false);
+    element.addEventListener('click', function(){click(throwIndex,false)}, false);
+    element.classList.add(prefix+String(throwIndex));
+}
+
+function mouseOverEffect(value:number) {
+    if (currentSelection == value % siteswap.length || value == -1) {
+        return;
+    }
+    
+    let position = value % siteswap.length;
+    while (position < pattern.length) {
+        ['line','value'].forEach((prefix) => { 
+            let elements = document.getElementsByClassName(prefix+String(position));
+            Array.from(elements).forEach((el) => {
+                el.setAttribute("fill","lightblue");
+            });
+        });
+        position += siteswap.length;
+    }
+}
+
+function mouseOutEffect(value:number) {
+    if (currentSelection == value % siteswap.length || value == -1) {
+        return;
+    }
+
+    let position = value % siteswap.length;
+    while (position < pattern.length) {
+        let lines = document.getElementsByClassName('line'+String(position));
+        Array.from(lines).forEach((el) => {
+            el.setAttribute("fill",lineColor);
+        });
+        let values = document.getElementsByClassName('value'+String(position));
+        Array.from(values).forEach((el) => {
+            el.setAttribute("fill",valueBackgroundColor);
+        });
+        position += siteswap.length;
+    }
+}
+
+function click(value:number, refreshSelection: boolean) {
+    const oldSelection = currentSelection;
+    if (value == -1) {
+        currentSelection = -1;
+    } else {
+        if ((currentSelection == value % siteswap.length) && !refreshSelection) {
+            currentSelection = -1;
+        } else {
+            currentSelection = value % siteswap.length;
+            if (oldSelection != -1) {
+                const distance = Math.abs(currentSelection - oldSelection);
+                const newMax = siteswap[Math.max(currentSelection,oldSelection)] + distance;
+                const newMin = siteswap[Math.min(currentSelection,oldSelection)] - distance;
+                if (newMax <= 36 && newMin >= 0) {
+                    siteswap[Math.max(currentSelection,oldSelection)] = newMin;
+                    siteswap[Math.min(currentSelection,oldSelection)] = newMax; 
+                    currentSelection = -1;
+                    mouseOutEffect(oldSelection);
+                    refresh();
+                    setInput();
+                }
+            }
+        }
+    }
+    mouseOutEffect(oldSelection);
+
+    if (currentSelection == -1) {
+        return;
+    }
+    let position = currentSelection;
+    while (position < pattern.length) {
+        ['line','value'].forEach((prefix) => { 
+            let elements = document.getElementsByClassName(prefix+String(position));
+            Array.from(elements).forEach((el) => {
+                el.setAttribute("fill","blue");
+            });
+        });
+        position += siteswap.length;
+    }
+}
+
+function logKey(e) {
+    console.log("key: ",e.key);
+    if (currentSelection == -1) {
+        switch (e.key) {
+            case '+':
+            case 'ArrowUp':
+                if (Math.max(...siteswap) < 35) {
+                    siteswap = siteswap.map(x=>x+1);
+                }
+                break;
+            case '-':
+            case 'ArrowDown':
+                if (Math.min(...siteswap) > 0) {
+                    siteswap = siteswap.map(x=>x-1);
+                }
+                break;
+            default:
+                return;
+        }
+        refresh();
+        setInput();
+    } else {
+        let newVal;
+        switch (e.key) {
+            case '+':
+            case 'ArrowUp':
+                newVal = siteswap[currentSelection] + siteswap.length;
+                if (newVal <= 36) {
+                    siteswap[currentSelection] = newVal;
+                }
+                break;
+            case '-':
+            case 'ArrowDown':
+                newVal = siteswap[currentSelection] - siteswap.length;
+                if (newVal >= 0) {
+                    siteswap[currentSelection] = newVal;
+                }
+                break;
+            default:
+                return;
+        }
+        refresh();
+        setInput();
+    }
+  }
 
 function getInput() {
     siteswap = parseSiteswap((document.getElementById("siteswapInput") as HTMLInputElement).value);
