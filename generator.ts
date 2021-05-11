@@ -750,7 +750,6 @@ function click(value:number, refreshSelection: boolean) {
 }
 
 function logKey(e) {
-    console.log("key: ",e.key);
     if (currentSelection == -1) {
         switch (e.key) {
             case '+':
@@ -786,6 +785,28 @@ function logKey(e) {
                 if (newVal >= 0) {
                     siteswap[currentSelection] = newVal;
                 }
+                break;
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                let origins: number[] = [];
+                for (var k=0; k<siteswap.length; k++) {
+                    const landing = k + siteswap[k];
+                    origins[landing%siteswap.length] = k;
+                }
+                const newValue = parseInt(e.key);
+                const currentDestination = (newValue+currentSelection)%siteswap.length;
+                const currentOriginOfNewDestination = origins[currentDestination];
+                const currentSs = siteswap[currentSelection];
+                siteswap[currentSelection] = newValue;
+                siteswap[currentOriginOfNewDestination] = Math.min(currentSelection,currentOriginOfNewDestination)==currentSelection ? currentSs - Math.abs(currentOriginOfNewDestination-currentSelection) : currentSs + Math.abs(currentOriginOfNewDestination-currentSelection);
+                currentSelection = -1;
                 break;
             default:
                 return;
