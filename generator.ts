@@ -1,12 +1,12 @@
 let siteswap:number[]=[7,7,7,8,2,7,7,7,2,6]; //The base siteswap
 let throws:number = 30; // The number of throws to show
-let lineWidth:number = 30; // Thickness of the line showing the pattern
-let lineColor:string = "black"; 
+let lineWidth:number = 25; // Thickness of the line showing the pattern
+let lineColor:string = "yellow"; 
 let backgroundColor:string = "#0F4336";
-let separatorColor:string = "white";
-let centerLineColor:string = "blue";
+let separatorColor:string = "black";
+let centerLineColor:string = "red";
 let centerLineWidth:number = 5;
-let separatorWidth:number = 20; // How much thicker the separator line is than the pattern line
+let separatorWidth:number = 10; // How much thicker the separator line is than the pattern line
 let showLastCatches:boolean = false; 
 let showValueAtPeak:boolean = false;
 let showValueAtThrow:boolean = false;
@@ -14,12 +14,12 @@ let showCenterLine:boolean = false;
 let catching:boolean = false;
 let unidirectional:boolean = false;
 let invert:boolean = false;
-let widthIncrement:number = 70;
-let valueSize:number = 15;
+let widthIncrement:number = 100;
+let valueSize:number = 20;
 let valueBackgroundColor:string = "white";
 let valueOutlineColor:string = "black";
 let valueTextColor:string = "black";
-let valueTextSize:number = 20;
+let valueTextSize:number = 25;
 let showOnlyFirstThrows:boolean = false;
 let flatten:boolean = true;
 
@@ -265,6 +265,7 @@ function refresh() {
 
     // Ladder diagram
     const ladderWidth = 400;
+    const throwStartingPoint = 50;
 
     let ladderContainer = document.getElementById('ladderContainer');
     ladderContainer.innerHTML = '';
@@ -274,7 +275,7 @@ function refresh() {
     ladderSvg.setAttribute("viewBox", "0 0 "+width+" "+ (100+ladderWidth));
     ladderSvg.setAttribute("style","background-color:"+backgroundColor);
 
-    const centerPoint = (ladderWidth/2) + 50;
+    const centerPoint = (ladderWidth/2) + throwStartingPoint;
     if (showCenterLine) {
         let ladderCenterLine = document.createElementNS("http://www.w3.org/2000/svg", "line"); 
         ladderCenterLine.setAttribute("stroke",centerLineColor);
@@ -287,6 +288,13 @@ function refresh() {
     }
 
     corners = [];
+    const throwBuffer = 20;
+    const maxPossibleHeight = centerPoint - throwStartingPoint - throwBuffer;
+
+    heightMultiplier = maxPossibleHeight / 9;
+    if (highestThrow > 9) {
+        heightMultiplier = maxPossibleHeight / highestThrow;
+    }
 
     for (let i=0; i<pattern.length; i++) {
         let side = (i % 2);
@@ -296,17 +304,9 @@ function refresh() {
         const crosses = (pattern[i] % 2);
     
         const startX = widthIncrement + (widthIncrement * i);
-        const startY = 50 + (ladderWidth * side);
+        const startY = throwStartingPoint + (ladderWidth * side);
         const endX = startX + (widthIncrement * pattern[i]);
         const peakX = startX + ((widthIncrement * pattern[i]) / 2);
-        let peakY = centerPoint;
-        //TODO: fix this so the heightMultiplier actually works for high throw values
-        const throwHeight = (ladderWidth / 20) * pattern[i] * (heightMultiplier/100);
-        if (side) {
-            peakY = centerPoint - throwHeight;
-        } else {
-            peakY = centerPoint + throwHeight;
-        }
         let firstThrow = true;
             for (let j=i-1; j>=0; j--) {
                 if (pattern[j] == i-j) {
@@ -322,7 +322,7 @@ function refresh() {
             } else {
                 newSide = 1;
             }
-            const endY = 50 + (ladderWidth * newSide);
+            const endY = throwStartingPoint + (ladderWidth * newSide);
 
             if (firstThrow) {
                 let sepLineStartPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -394,13 +394,14 @@ function refresh() {
             } else {
                 newSide = 1;
             }
+            let peakY;
             if (flatten && pattern[i] == 2) {
                 peakY = startY;
             } else {
                 if (side) {
-                    peakY = startY - (18*pattern[i]) - 50;
+                    peakY = startY - (pattern[i] * heightMultiplier) - throwBuffer;
                 } else {
-                    peakY = startY + (18*pattern[i]) + 50;
+                    peakY = startY + (pattern[i] * heightMultiplier) + throwBuffer;
                 }
             }
 
