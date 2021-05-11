@@ -1,9 +1,9 @@
 let siteswap:number[]=[7,7,7,8,2,7,7,7,2,6]; //The base siteswap
 let throws:number = 30; // The number of throws to show
 let lineWidth:number = 25; // Thickness of the line showing the pattern
-let lineColor:string = "yellow"; 
-let backgroundColor:string = "#0F4336";
-let separatorColor:string = "black";
+let lineColor:string = "black"; 
+let backgroundColor:string = "white";
+let separatorColor:string = "white";
 let centerLineColor:string = "red";
 let centerLineWidth:number = 5;
 let separatorWidth:number = 10; // How much thicker the separator line is than the pattern line
@@ -33,6 +33,14 @@ refresh();
 disableInputs();
 
 function refresh() {
+    if (siteswap == null || siteswap.length == 0) {
+        let siteswapContainer: HTMLElement = document.getElementById('siteswapContainer');
+        siteswapContainer.innerHTML = '';
+        let ladderContainer = document.getElementById('ladderContainer');
+        ladderContainer.innerHTML = '';
+        return;
+    }
+
     pattern = siteswap;
     while (pattern.length < throws) {
         pattern = pattern.concat(siteswap);
