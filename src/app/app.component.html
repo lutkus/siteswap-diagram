@@ -1,0 +1,27 @@
+
+<!-- <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"> -->
+<div class="container-fluid">
+<h2>{{title}}</h2>
+
+<label>
+  Siteswap:
+  <input type="text" [formControl]="siteswapForm">
+</label>
+
+<accordion>
+  <accordion-group heading="Configuration options" [isOpen]="true">
+    <app-config></app-config>
+  </accordion-group>
+  <accordion-group heading="Siteswap diagram"
+                   [isOpen]="true">
+    <app-siteswap-diagram></app-siteswap-diagram>
+  </accordion-group>
+  <accordion-group heading="Ladder diagram"
+  [isOpen]="true">
+<app-ladder-diagram></app-ladder-diagram>
+</accordion-group>
+  <accordion-group heading="About">
+    <app-about></app-about>
+  </accordion-group>
+</accordion>
+</div>
