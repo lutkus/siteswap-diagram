@@ -3,6 +3,7 @@ import { FormGroup } from '@angular/forms';
 import { ConfigService } from '../config/config.service';
 import { DrawingService } from '../drawing/drawing.service';
 import { Quadrilateral } from '../drawing/quadrilateral';
+import { EditorService } from '../editor/editor.service';
 import { SiteswapService } from '../siteswap.service';
 
 @Component({
@@ -18,7 +19,8 @@ export class LadderDiagramComponent implements OnInit {
   constructor(
     private configService: ConfigService,
     private drawingService: DrawingService,
-    private siteswapService: SiteswapService) { }
+    private siteswapService: SiteswapService,
+    private editorService: EditorService) { }
 
   ngOnInit(): void {
     this.configService.configForm.valueChanges.subscribe(() => { this.updateLadderDiagram() });
@@ -32,6 +34,8 @@ export class LadderDiagramComponent implements OnInit {
       return;
     }
     ladderContainer.innerHTML = '';
+    // ladderContainer.addEventListener('keyup',this.onKeyUp, false);
+
     if (siteswap == null || siteswap.length == 0) {
       return;
     }
@@ -46,9 +50,6 @@ export class LadderDiagramComponent implements OnInit {
 
     const width = config.throwSpacing + lastLandingBeat * config.throwSpacing;
     let ladderSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    // ladderSvg.addEventListener('focus', function(){
-    //     this.addEventListener('keyup', logKey);
-    // });
     ladderSvg.setAttribute("id", "ladder");
     ladderSvg.setAttribute("viewBox", "0 0 " + width + " " + (100 + ladderWidth));
     ladderSvg.setAttribute("style", "background-color:" + config.backgroundColor);
@@ -145,7 +146,7 @@ export class LadderDiagramComponent implements OnInit {
         lineStartPoint.setAttribute("cy", String(startY));
         lineStartPoint.setAttribute("r", String(config.lineThickness / 2));
         lineStartPoint.setAttribute("fill", config.lineColor);
-        // addListeners(lineStartPoint, 'line', i);
+        this.editorService.addListeners(lineStartPoint, 'line', i);
         ladderSvg.appendChild(lineStartPoint);
 
         let lineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -153,11 +154,11 @@ export class LadderDiagramComponent implements OnInit {
         lineEndPoint.setAttribute("cy", String(endY));
         lineEndPoint.setAttribute("r", String(config.lineThickness / 2));
         lineEndPoint.setAttribute("fill", config.lineColor);
-        // addListeners(lineEndPoint, 'line', i);
+        this.editorService.addListeners(lineEndPoint, 'line', i);
         ladderSvg.appendChild(lineEndPoint);
 
         let currentLine = this.drawingService.generateLine(startX, startY, endX, endY, config.lineThickness, config.lineColor, null);
-        // addListeners(currentLine, 'line', i);
+        this.editorService.addListeners(currentLine, 'line', i);
         currentLine.classList.add(String(i));
         ladderSvg.appendChild(currentLine);
 
@@ -251,7 +252,7 @@ export class LadderDiagramComponent implements OnInit {
         lineStartPoint.setAttribute("cy", String(startY));
         lineStartPoint.setAttribute("r", String(config.lineThickness / 2));
         lineStartPoint.setAttribute("fill", config.lineColor);
-        // addListeners(lineStartPoint, 'line', i);
+        this.editorService.addListeners(lineStartPoint, 'line', i);
         ladderSvg.appendChild(lineStartPoint);
 
         let lineMidPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -259,7 +260,7 @@ export class LadderDiagramComponent implements OnInit {
         lineMidPoint.setAttribute("cy", String(peakY));
         lineMidPoint.setAttribute("r", String(config.lineThickness / 2));
         lineMidPoint.setAttribute("fill", config.lineColor);
-        // addListeners(lineMidPoint,'line', i);
+        this.editorService.addListeners(lineMidPoint,'line', i);
         ladderSvg.appendChild(lineMidPoint);
 
         let lineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -267,15 +268,15 @@ export class LadderDiagramComponent implements OnInit {
         lineEndPoint.setAttribute("cy", String(startY));
         lineEndPoint.setAttribute("r", String(config.lineThickness / 2));
         lineEndPoint.setAttribute("fill", config.lineColor);
-        // addListeners(lineEndPoint,'line', i);
+        this.editorService.addListeners(lineEndPoint,'line', i);
         ladderSvg.appendChild(lineEndPoint);
 
         let lineUp = this.drawingService.generateLine(startX, startY, peakX, peakY, config.lineThickness, config.lineColor, null);
-        // addListeners(lineUp,'line', i);
+        this.editorService.addListeners(lineUp,'line', i);
         ladderSvg.appendChild(lineUp);
 
         let lineDown = this.drawingService.generateLine(peakX, peakY, endX, startY, config.lineThickness, config.lineColor, null);
-        // addListeners(lineDown,'line', i);
+        this.editorService.addListeners(lineDown,'line', i);
         ladderSvg.appendChild(lineDown);
 
         // In order to correctly draw the separator for the line that connects
@@ -301,7 +302,7 @@ export class LadderDiagramComponent implements OnInit {
             label.setAttribute("stroke",String(config.valueOutlineColor));
             label.setAttribute("stroke-width",config.valueOutlineThickness);
             label.setAttribute("fill",config.valueBackgroundColor)        
-            // addListeners(label, 'value', i);
+            this.editorService.addListeners(label, 'value', i);
             ladderSvg.appendChild(label);
     
             let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -312,7 +313,7 @@ export class LadderDiagramComponent implements OnInit {
             text.setAttribute("text-anchor","middle");
             text.setAttribute("alignment-baseline","middle");
             text.textContent = this.siteswapService.intToSiteswapDigit(pattern[i]);
-            // addListeners(text, 'text', i);
+            this.editorService.addListeners(text, 'text', i);
             ladderSvg.appendChild(text);
         }
     }
@@ -354,10 +355,19 @@ export class LadderDiagramComponent implements OnInit {
 
 
     } // loop
+
+    ladderSvg.addEventListener('focus',()=>{
+      ladderSvg?.addEventListener('keyup',event=>{console.log("Key pressed: ",event)
+      this.editorService.logKey(event)});
+    });
     ladderContainer.appendChild(ladderSvg);
   }
 
   download() {
     this.drawingService.downloadSvg('ladder',this.configService.getSiteswapString());
+  }
+
+  onKeyUp(event: Event): void {
+    console.log("keyup: event=",event);
   }
 }

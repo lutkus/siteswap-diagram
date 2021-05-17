@@ -4,6 +4,7 @@ import { ConfigService } from '../config/config.service';
 import { DrawingService } from '../drawing/drawing.service';
 import { Fixcorner } from '../drawing/fixcorner';
 import { Quadrilateral } from '../drawing/quadrilateral';
+import { EditorService } from '../editor/editor.service';
 import { SiteswapService } from '../siteswap.service';
 
 @Component({
@@ -18,7 +19,8 @@ export class SiteswapDiagramComponent implements OnInit {
   constructor(
     private configService: ConfigService, 
     private drawingService: DrawingService,
-    private siteswapService: SiteswapService)
+    private siteswapService: SiteswapService,
+    private editorService: EditorService)
   { }
 
   ngOnInit(): void {
@@ -177,7 +179,7 @@ export class SiteswapDiagramComponent implements OnInit {
       lineStartPoint.setAttribute("cy",String(startY));
       lineStartPoint.setAttribute("r",String(config.lineThickness/2));
       lineStartPoint.setAttribute("fill",config.lineColor);        
-      // addListeners(lineStartPoint, 'line', i);
+      this.editorService.addListeners(lineStartPoint, 'line', i);
       siteswapSvg.appendChild(lineStartPoint);
 
       let lineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -185,11 +187,11 @@ export class SiteswapDiagramComponent implements OnInit {
       lineEndPoint.setAttribute("cy",String(peakY));
       lineEndPoint.setAttribute("r",String(config.lineThickness/2));
       lineEndPoint.setAttribute("fill",config.lineColor);        
-      // addListeners(lineEndPoint,'line', i);
+      this.editorService.addListeners(lineEndPoint,'line', i);
       siteswapSvg.appendChild(lineEndPoint);
 
       let upLine = this.drawingService.generateLine(startX,startY,peakX,peakY,config.lineThickness,config.lineColor,null);
-      // addListeners(upLine, 'line', i);
+      this.editorService.addListeners(upLine, 'line', i);
       siteswapSvg.appendChild(upLine);
 
       let lineEndPoint2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -197,11 +199,11 @@ export class SiteswapDiagramComponent implements OnInit {
       lineEndPoint2.setAttribute("cy",String(endY));
       lineEndPoint2.setAttribute("r",String(config.lineThickness/2));
       lineEndPoint2.setAttribute("fill",config.lineColor);        
-      // addListeners(lineEndPoint2,'line', i);
-      // siteswapSvg.appendChild(lineEndPoint2);
+      this.editorService.addListeners(lineEndPoint2,'line', i);
+      siteswapSvg.appendChild(lineEndPoint2);
 
       let downLine = this.drawingService.generateLine(peakX,peakY,endX,endY,config.lineThickness,config.lineColor,null);
-      // addListeners(downLine,'line', i);
+      this.editorService.addListeners(downLine,'line', i);
       siteswapSvg.appendChild(downLine);
 
       //JEFF test stuff
@@ -259,7 +261,7 @@ export class SiteswapDiagramComponent implements OnInit {
           label.setAttribute("stroke",config.valueOutlineColor);
           label.setAttribute("stroke-width",config.valueOutlineThickness);
           label.setAttribute("fill",config.valueBackgroundColor);        
-          // addListeners(label, 'value', i);
+          this.editorService.addListeners(label, 'value', i);
           siteswapSvg.appendChild(label);
   
           let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -270,7 +272,7 @@ export class SiteswapDiagramComponent implements OnInit {
           text.setAttribute("text-anchor","middle");
           text.setAttribute("alignment-baseline","middle");
           text.textContent = this.siteswapService.intToSiteswapDigit(pattern[i]);
-          // addListeners(text, 'text', i);
+          this.editorService.addListeners(text, 'text', i);
           siteswapSvg.appendChild(text);
       }
   
@@ -284,7 +286,7 @@ export class SiteswapDiagramComponent implements OnInit {
               label.setAttribute("stroke",config.valueOutlineColor);
               label.setAttribute("stroke-width",config.valueOutlineThickness);
               label.setAttribute("fill",config.valueBackgroundColor);
-              // addListeners(label, 'value', i);
+              this.editorService.addListeners(label, 'value', i);
               siteswapSvg.appendChild(label);
       
               let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -295,13 +297,17 @@ export class SiteswapDiagramComponent implements OnInit {
               text.setAttribute("font-size",String(config.valueTextSize));
               text.setAttribute("fill",config.valueTextColor);
               text.textContent = this.siteswapService.intToSiteswapDigit(pattern[i]);
-              // addListeners(text, 'text', i);
+              this.editorService.addListeners(text, 'text', i);
               siteswapSvg.appendChild(text);
           }
       }    
 
       
     } // loop
+
+    siteswapSvg.addEventListener('focus',()=>{
+      siteswapSvg?.addEventListener('keyup',event=>{this.editorService.logKey(event)});
+    });
 
     siteswapContainer.appendChild(siteswapSvg);
   }

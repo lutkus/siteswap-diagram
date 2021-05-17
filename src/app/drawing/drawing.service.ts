@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Fixcorner } from './fixcorner';
 import { Point } from './point';
+import { Quadrilateral } from './quadrilateral';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ export class DrawingService {
 
   constructor() { }
 
-  public generateLine(x1:number, y1:number, x2:number, y2:number, thickness:number, color:string, previousLine:Fixcorner) {
+  public generateLine(x1:number, y1:number, x2:number, y2:number, thickness:number, color:string, previousLine:Fixcorner): SVGPolygonElement {
     if (y1==y2) {
         // this is a horizontal line
     }
@@ -54,7 +55,7 @@ export class DrawingService {
     return polygon;
   }
 
-  public generateBreadthPoints(upperPoint:Point,lowerPoint:Point,width:number) {
+  public generateBreadthPoints(upperPoint:Point,lowerPoint:Point,width:number): Quadrilateral {
     const slope = this.getSlope(upperPoint,lowerPoint);
     const xOffset = (width/2)*Math.sin(Math.atan(slope));
     const yOffset = (width/2)*Math.cos(Math.atan(slope));
@@ -65,11 +66,11 @@ export class DrawingService {
     return {lowerLeft: lowerLeft, lowerRight: lowerRight, upperRight: upperRight, upperLeft: upperLeft};
   }
 
-  public getSlope(point1:Point,point2:Point) {
+  public getSlope(point1:Point,point2:Point): number {
     return (point2.y-point1.y)/(point2.x-point1.x);
   }
 
-  public getIntercept(line1Point1:Point,line1Point2:Point,line2Point1:Point,line2Point2:Point) {
+  public getIntercept(line1Point1:Point,line1Point2:Point,line2Point1:Point,line2Point2:Point): Point {
     const line1Slope= this.getSlope(line1Point1,line1Point2);
     const line2Slope = this.getSlope(line2Point1,line2Point2);
     const interceptX = (line1Point1.y - line1Slope*line1Point1.x - line2Point1.y + line2Slope*line2Point1.x) / (line2Slope-line1Slope);
@@ -81,6 +82,13 @@ export class DrawingService {
     return point.x + "," + point.y + " ";
   }
 
+  /**
+   * This method is used to download an SVG file. The SVG should be contained in an element called elementId+"Container"
+   * The file to download will be named elementId+siteswap.sgv e.g. ladder77786.siteswap
+   * @param elementId There should be an SVG element called elementId+"Container" e.g. siteswapContainer to download
+   * @param siteswap The siteswap value -- used in generating the filename
+   * @returns 
+   */
   public downloadSvg(elementId:string, siteswap:string) {
     var element = document.createElement('a');
     const text: string|undefined = document.getElementById(elementId+"Container")?.innerHTML;
