@@ -357,8 +357,7 @@ export class LadderDiagramComponent implements OnInit {
     } // loop
 
     ladderSvg.addEventListener('focus',()=>{
-      ladderSvg?.addEventListener('keyup',event=>{console.log("Key pressed: ",event)
-      this.editorService.logKey(event)});
+      ladderSvg?.addEventListener('keyup',event=>{this.editorService.logKey(event)});
     });
     ladderContainer.appendChild(ladderSvg);
   }
