@@ -17,3 +17,4 @@ Run `ng build --prod` to build the project. The build artifacts will be stored i
 ## About
 
 Written by Jeff Lutkus 2021. The latest version is hosted at [lutkus.org/siteswap-diagram](http://lutkus.org/siteswap-diagram).
+Source available on [github](https://github.com/lutkus/siteswap-diagram).
