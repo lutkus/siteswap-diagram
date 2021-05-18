@@ -94,8 +94,9 @@ export class EditorService {
     }
   }
 
-  logKey(e: { key: string; }) {
+  public logKey(e: { key: string; }) {
     let siteswap:number[] = this.configService.getSiteswap();
+    // console.log("e.key=",e.key);
     if (this.currentSelection == -1) {
       switch (e.key) {
         case '+':
@@ -110,6 +111,20 @@ export class EditorService {
             siteswap = siteswap.map(x => x - 1);
           }
           break;
+          case 'ArrowLeft':
+            const firstElement = siteswap.shift();
+            if (firstElement) {
+              siteswap.push(firstElement);
+            }
+            this.configService.setSiteswap(siteswap);
+            break;
+            case 'ArrowRight':
+              const lastElement = siteswap.pop();
+              if (lastElement) {
+                siteswap.unshift(lastElement);
+              }
+              this.configService.setSiteswap(siteswap);
+              break;              
         default:
           return;
       }

@@ -35,7 +35,7 @@ export class ConfigService {
       numJugglers: new FormControl(2),
       invert: new FormControl(false),
       unidirectional: new FormControl(false),
-      flatten: new FormControl(true),
+      flatten: new FormControl(false),
       catching: new FormControl(false),
       debug: new FormControl(false),
     });
@@ -86,6 +86,7 @@ export class ConfigService {
       }
   
       if (this.configForm.get('unidirectional')?.value == true) {
+        this.configForm.get('invert')?.setValue(false,{emitEvent:false});
         this.configForm.get('invert')?.disable({emitEvent:false}); 
       } else {
         this.configForm.get('invert')?.enable({emitEvent:false}); 

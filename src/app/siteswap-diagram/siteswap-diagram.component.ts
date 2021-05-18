@@ -15,6 +15,7 @@ import { SiteswapService } from '../siteswap.service';
 export class SiteswapDiagramComponent implements OnInit {
 
   configForm = new FormGroup({});
+  hasKeyUpListener = false;
 
   constructor(
     private configService: ConfigService, 
@@ -24,6 +25,21 @@ export class SiteswapDiagramComponent implements OnInit {
   { }
 
   ngOnInit(): void {
+    let siteswapOuterContainer: HTMLElement | null = document.getElementById('siteswapOuterContainer');
+    if (siteswapOuterContainer != null) {
+      siteswapOuterContainer.innerHTML = '';
+      let siteswapContainer = document.createElement("div");  
+      siteswapContainer.setAttribute("id","siteswapContainer");
+      siteswapContainer.setAttribute("tabindex","0");
+      siteswapContainer.addEventListener('focus', () => {
+        if (!this.hasKeyUpListener) {
+          siteswapContainer.addEventListener('keyup', event => { this.editorService.logKey(event) });
+          this.hasKeyUpListener = true;
+        }
+      });
+      siteswapOuterContainer.appendChild(siteswapContainer);
+    }
+
     this.configService.configForm.valueChanges.subscribe(()=>{this.updateSiteswapDiagram()});
     this.updateSiteswapDiagram();
   }
@@ -305,10 +321,9 @@ export class SiteswapDiagramComponent implements OnInit {
       
     } // loop
 
-    siteswapSvg.addEventListener('focus',()=>{
-      siteswapSvg?.addEventListener('keyup',event=>{this.editorService.logKey(event)});
-    });
-
+    // siteswapContainer.addEventListener('focus',()=>{
+    //   siteswapContainer?.addEventListener('keyup',event=>{this.editorService.logKey(event)});
+    // });
     siteswapContainer.appendChild(siteswapSvg);
   }
 

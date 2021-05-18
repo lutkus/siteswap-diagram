@@ -15,6 +15,7 @@ export class LadderDiagramComponent implements OnInit {
 
 
   configForm = new FormGroup({});
+  hasKeyUpListener = false;
 
   constructor(
     private configService: ConfigService,
@@ -23,8 +24,23 @@ export class LadderDiagramComponent implements OnInit {
     private editorService: EditorService) { }
 
   ngOnInit(): void {
+    let ladderOuterContainer: HTMLElement | null = document.getElementById('ladderOuterContainer');
+    if (ladderOuterContainer != null) {
+      ladderOuterContainer.innerHTML = '';
+      let ladderContainer = document.createElement("div");  
+      ladderContainer.setAttribute("id","ladderContainer");
+      ladderContainer.setAttribute("tabindex","1");
+      ladderContainer.addEventListener('focus', () => {
+        if (!this.hasKeyUpListener) {
+          ladderContainer.addEventListener('keyup', event => { this.editorService.logKey(event) });
+          this.hasKeyUpListener = true;
+        }
+      });
+      ladderOuterContainer.appendChild(ladderContainer);
+    }
+
     this.configService.configForm.valueChanges.subscribe(() => { this.updateLadderDiagram() });
-    this.updateLadderDiagram()
+    this.updateLadderDiagram();
   }
 
   updateLadderDiagram() {
@@ -34,7 +50,6 @@ export class LadderDiagramComponent implements OnInit {
       return;
     }
     ladderContainer.innerHTML = '';
-    // ladderContainer.addEventListener('keyup',this.onKeyUp, false);
 
     if (siteswap == null || siteswap.length == 0) {
       return;
@@ -260,7 +275,7 @@ export class LadderDiagramComponent implements OnInit {
         lineMidPoint.setAttribute("cy", String(peakY));
         lineMidPoint.setAttribute("r", String(config.lineThickness / 2));
         lineMidPoint.setAttribute("fill", config.lineColor);
-        this.editorService.addListeners(lineMidPoint,'line', i);
+        this.editorService.addListeners(lineMidPoint, 'line', i);
         ladderSvg.appendChild(lineMidPoint);
 
         let lineEndPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -268,15 +283,15 @@ export class LadderDiagramComponent implements OnInit {
         lineEndPoint.setAttribute("cy", String(startY));
         lineEndPoint.setAttribute("r", String(config.lineThickness / 2));
         lineEndPoint.setAttribute("fill", config.lineColor);
-        this.editorService.addListeners(lineEndPoint,'line', i);
+        this.editorService.addListeners(lineEndPoint, 'line', i);
         ladderSvg.appendChild(lineEndPoint);
 
         let lineUp = this.drawingService.generateLine(startX, startY, peakX, peakY, config.lineThickness, config.lineColor, null);
-        this.editorService.addListeners(lineUp,'line', i);
+        this.editorService.addListeners(lineUp, 'line', i);
         ladderSvg.appendChild(lineUp);
 
         let lineDown = this.drawingService.generateLine(peakX, peakY, endX, startY, config.lineThickness, config.lineColor, null);
-        this.editorService.addListeners(lineDown,'line', i);
+        this.editorService.addListeners(lineDown, 'line', i);
         ladderSvg.appendChild(lineDown);
 
         // In order to correctly draw the separator for the line that connects
@@ -291,47 +306,47 @@ export class LadderDiagramComponent implements OnInit {
         // polyline.setAttribute("fill-opacity","0");
         // polyline.setAttribute("points", points);;
         // ladderSvg.appendChild(polyline);
-      } 
+      }
 
       if (config.showValueAtThrow) {
         if (!config.onlyStartingThrows || firstThrow) {
-            let label = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            label.setAttribute("cx",String(startX));
-            label.setAttribute("cy",String(startY));
-            label.setAttribute("r",String(config.valueRadius));
-            label.setAttribute("stroke",String(config.valueOutlineColor));
-            label.setAttribute("stroke-width",config.valueOutlineThickness);
-            label.setAttribute("fill",config.valueBackgroundColor)        
-            this.editorService.addListeners(label, 'value', i);
-            ladderSvg.appendChild(label);
-    
-            let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            text.setAttribute("x",String(startX));
-            text.setAttribute("y",String(startY));
-            text.setAttribute("font-size",String(config.valueTextSize));
-            text.setAttribute("fill",config.valueTextColor);
-            text.setAttribute("text-anchor","middle");
-            text.setAttribute("alignment-baseline","middle");
-            text.textContent = this.siteswapService.intToSiteswapDigit(pattern[i]);
-            this.editorService.addListeners(text, 'text', i);
-            ladderSvg.appendChild(text);
-        }
-    }
+          let label = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          label.setAttribute("cx", String(startX));
+          label.setAttribute("cy", String(startY));
+          label.setAttribute("r", String(config.valueRadius));
+          label.setAttribute("stroke", String(config.valueOutlineColor));
+          label.setAttribute("stroke-width", config.valueOutlineThickness);
+          label.setAttribute("fill", config.valueBackgroundColor)
+          this.editorService.addListeners(label, 'value', i);
+          ladderSvg.appendChild(label);
 
-    if (config.showHandLabels) {
-        let handLabels: string[] = [];
-        const possibleHands = ['R','L'];
-        if (config.numJugglers > 1) {
-            possibleHands.forEach((hand)=>{
-                for (let juggler=1; juggler<=config.numJugglers; juggler++) {
-                    handLabels.push(hand + juggler);
-                }
-            });
-        } else {
-            handLabels = possibleHands;
+          let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          text.setAttribute("x", String(startX));
+          text.setAttribute("y", String(startY));
+          text.setAttribute("font-size", String(config.valueTextSize));
+          text.setAttribute("fill", config.valueTextColor);
+          text.setAttribute("text-anchor", "middle");
+          text.setAttribute("alignment-baseline", "middle");
+          text.textContent = this.siteswapService.intToSiteswapDigit(pattern[i]);
+          this.editorService.addListeners(text, 'text', i);
+          ladderSvg.appendChild(text);
         }
-        const handLabelOffset = throwStartingPoint/2;
-        const yLabelPos = side?startY+handLabelOffset:startY-handLabelOffset;
+      }
+
+      if (config.showHandLabels) {
+        let handLabels: string[] = [];
+        const possibleHands = ['R', 'L'];
+        if (config.numJugglers > 1) {
+          possibleHands.forEach((hand) => {
+            for (let juggler = 1; juggler <= config.numJugglers; juggler++) {
+              handLabels.push(hand + juggler);
+            }
+          });
+        } else {
+          handLabels = possibleHands;
+        }
+        const handLabelOffset = throwStartingPoint / 2;
+        const yLabelPos = side ? startY + handLabelOffset : startY - handLabelOffset;
         // let label = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         // label.setAttribute("cx",String(startX));
         // label.setAttribute("cy",String(yLabelPos));
@@ -343,30 +358,23 @@ export class LadderDiagramComponent implements OnInit {
         // ladderSvg.appendChild(label);
 
         let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x",String(startX));
-        text.setAttribute("y",String(yLabelPos));
-        text.setAttribute("font-size",String(config.valueTextSize));
-        text.setAttribute("fill",config.valueTextColor);
-        text.setAttribute("text-anchor","middle");
-        text.setAttribute("alignment-baseline","middle");
-        text.textContent = String(handLabels[i%handLabels.length]);
-        ladderSvg.appendChild(text);            
-    }
+        text.setAttribute("x", String(startX));
+        text.setAttribute("y", String(yLabelPos));
+        text.setAttribute("font-size", String(config.valueTextSize));
+        text.setAttribute("fill", config.valueTextColor);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("alignment-baseline", "middle");
+        text.textContent = String(handLabels[i % handLabels.length]);
+        ladderSvg.appendChild(text);
+      }
 
 
     } // loop
 
-    ladderSvg.addEventListener('focus',()=>{
-      ladderSvg?.addEventListener('keyup',event=>{this.editorService.logKey(event)});
-    });
     ladderContainer.appendChild(ladderSvg);
   }
 
   download() {
-    this.drawingService.downloadSvg('ladder',this.configService.getSiteswapString());
-  }
-
-  onKeyUp(event: Event): void {
-    console.log("keyup: event=",event);
+    this.drawingService.downloadSvg('ladder', this.configService.getSiteswapString());
   }
 }

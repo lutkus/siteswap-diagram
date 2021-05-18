@@ -12,7 +12,6 @@ import { ConfigComponent } from './config/config.component';
 import { SiteswapDiagramComponent } from './siteswap-diagram/siteswap-diagram.component';
 import { LadderDiagramComponent } from './ladder-diagram/ladder-diagram.component';
 
-
 @NgModule({
   declarations: [
     AppComponent,
