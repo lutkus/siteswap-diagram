@@ -9,8 +9,9 @@
 </label>
 <span *ngIf="isValid" class="text-success"> &#10003; valid {{numObjects}} object siteswap</span>
 <span *ngIf="!isValid" class="text-danger"> &#10005; invalid siteswap</span>
+<span class="text-muted"> (only asynchronous vanilla siteswaps are currently supported)</span>
 <accordion>
-  <accordion-group heading="Configuration options" [isOpen]="true">
+  <accordion-group heading="Configuration options" [isOpen]="false">
     <app-config></app-config>
   </accordion-group>
   <accordion-group heading="Siteswap diagram"

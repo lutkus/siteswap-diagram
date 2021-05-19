@@ -40,6 +40,7 @@ yarn-error.log
 testem.log
 /typings
 jeff*
+deploy.sh
 
 # System Files
 .DS_Store

@@ -22,7 +22,7 @@ export class ConfigService {
       showCenterLine: new FormControl(false),
       centerLineThickness: new FormControl(5),
       centerLineColor: new FormControl('red'),
-      showValueAtThrow: new FormControl(false),
+      showValueAtThrow: new FormControl(true),
       onlyStartingThrows: new FormControl(false),
       showValueAtPeak: new FormControl(false),
       valueRadius: new FormControl(20),
