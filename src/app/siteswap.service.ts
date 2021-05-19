@@ -67,4 +67,27 @@ export class SiteswapService {
     return Math.max(...landings) + 1;    
   }
 
+  /**
+   * Return true if the provided siteswap is valid
+   * @param siteswap 
+   * @returns 
+   */
+  public isValid(siteswap: number[]): boolean {
+    let catches:number[] = [];
+    for (let i=0; i<siteswap.length; i++) {
+      catches[i]=0;
+    }
+    for (let i=0; i<siteswap.length; i++) {
+      const landingPosition = (siteswap[i]+i) % siteswap.length;
+      catches[landingPosition]++;
+    }
+    return !catches.includes(0);
+  }
+
+  public getNumObjects(siteswap: number[]):number {
+    const sum = siteswap.reduce((a, b) => a + b, 0);
+    const avg = (sum / siteswap.length) || 0;
+    return avg;
+  }
+
 }

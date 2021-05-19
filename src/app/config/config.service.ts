@@ -38,6 +38,7 @@ export class ConfigService {
       flatten: new FormControl(false),
       catching: new FormControl(false),
       debug: new FormControl(false),
+      version: new FormControl("1.0"),
     });
 
     this.enableDisable();

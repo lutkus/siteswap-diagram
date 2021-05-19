@@ -12,9 +12,12 @@ export class AppComponent implements OnInit {
 
   title = 'Siteswap Diagram Generator';
   siteswapForm: FormControl = new FormControl('');
+  isValid: boolean = false;
+  numObjects: number = 0;
 
   constructor(private configService: ConfigService, 
-              private siteswapService: SiteswapService) { }
+              private siteswapService: SiteswapService,
+  ) { }
 
   ngOnInit(): void {
     this.updateSiteswapDisplay();
@@ -29,6 +32,8 @@ export class AppComponent implements OnInit {
 
   private updateSiteswapDisplay() {
     this.siteswapForm.setValue(this.configService.getSiteswapString(),{emitEvent:false});
+    this.isValid = this.siteswapService.isValid(this.configService.getSiteswap());
+    this.numObjects=this.siteswapService.getNumObjects(this.configService.getSiteswap());
   }
 }
 

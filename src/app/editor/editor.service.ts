@@ -1,19 +1,21 @@
 import { Injectable } from '@angular/core';
 import { ConfigService } from '../config/config.service';
+import { SiteswapService } from '../siteswap.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EditorService {
 
-  currentSelection:number = -1;
+  currentSelection: number = -1;
 
-  constructor(private configService: ConfigService) { }
+  constructor(private configService: ConfigService,
+    private siteswapService: SiteswapService) { }
 
   public addListeners(element: SVGElement, prefix: string, throwIndex: number) {
-    element.addEventListener('mouseover', ()=>{ this.mouseOverEffect(throwIndex) }, false);
-    element.addEventListener('mouseout', ()=>{ this.mouseOutEffect(throwIndex) }, false);
-    element.addEventListener('click', ()=>{ this.click(throwIndex, false) }, false);
+    element.addEventListener('mouseover', () => { this.mouseOverEffect(throwIndex) }, false);
+    element.addEventListener('mouseout', () => { this.mouseOutEffect(throwIndex) }, false);
+    element.addEventListener('click', () => { this.click(throwIndex, false) }, false);
     element.classList.add(prefix + String(throwIndex));
   }
 
@@ -95,7 +97,7 @@ export class EditorService {
   }
 
   public logKey(e: { key: string; }) {
-    let siteswap:number[] = this.configService.getSiteswap();
+    let siteswap: number[] = this.configService.getSiteswap();
     // console.log("e.key=",e.key);
     if (this.currentSelection == -1) {
       switch (e.key) {
@@ -111,20 +113,20 @@ export class EditorService {
             siteswap = siteswap.map(x => x - 1);
           }
           break;
-          case 'ArrowLeft':
-            const firstElement = siteswap.shift();
-            if (firstElement) {
-              siteswap.push(firstElement);
-            }
-            this.configService.setSiteswap(siteswap);
-            break;
-            case 'ArrowRight':
-              const lastElement = siteswap.pop();
-              if (lastElement) {
-                siteswap.unshift(lastElement);
-              }
-              this.configService.setSiteswap(siteswap);
-              break;              
+        case 'ArrowLeft':
+          const firstElement = siteswap.shift();
+          if (firstElement) {
+            siteswap.push(firstElement);
+          }
+          this.configService.setSiteswap(siteswap);
+          break;
+        case 'ArrowRight':
+          const lastElement = siteswap.pop();
+          if (lastElement) {
+            siteswap.unshift(lastElement);
+          }
+          this.configService.setSiteswap(siteswap);
+          break;
         default:
           return;
       }
@@ -145,30 +147,43 @@ export class EditorService {
             siteswap[this.currentSelection] = newVal;
           }
           break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-          let origins: number[] = [];
-          for (var k = 0; k < siteswap.length; k++) {
-            const landing = k + siteswap[k];
-            origins[landing % siteswap.length] = k;
+        default:
+          let newValue = -1;
+          if ('0' <= e.key && '9' >= e.key) {
+            newValue = parseInt(e.key);
+          } else if ('a' <= e.key && 'z' >= e.key) {
+            console.log("key is ", e.key);
+            newValue = e.key.charCodeAt(0) - 'a'.charCodeAt(0) + 10;
+          } else {
+            return;
           }
-          const newValue = parseInt(e.key);
-          const currentDestination = (newValue + this.currentSelection) % siteswap.length;
-          const currentOriginOfNewDestination = origins[currentDestination];
-          const currentSs = siteswap[this.currentSelection];
-          siteswap[this.currentSelection] = newValue;
-          siteswap[currentOriginOfNewDestination] = Math.min(this.currentSelection, currentOriginOfNewDestination) == this.currentSelection ? currentSs - Math.abs(currentOriginOfNewDestination - this.currentSelection) : currentSs + Math.abs(currentOriginOfNewDestination - this.currentSelection);
+          // First try subbing in the new value to the siteswap, and check if the result is valid...
+          let tempSiteswap = [...siteswap];
+          tempSiteswap[this.currentSelection] = newValue;
+          if (this.siteswapService.isValid(tempSiteswap)) {
+            siteswap = tempSiteswap;
+          } else {
+
+            // Subbing in the value gave an invalid siteswap. Do some siteswap math to try to make thing work.
+            let origins: number[] = [];
+            for (var k = 0; k < siteswap.length; k++) {
+              const landing = k + siteswap[k];
+              origins[landing % siteswap.length] = k;
+            }
+            const currentDestination = (newValue + this.currentSelection) % siteswap.length;
+            const currentOriginOfNewDestination = origins[currentDestination];
+            const currentSs = siteswap[this.currentSelection];
+            const newCompensatingValue = Math.min(this.currentSelection, currentOriginOfNewDestination) == this.currentSelection ? currentSs - Math.abs(currentOriginOfNewDestination - this.currentSelection) : currentSs + Math.abs(currentOriginOfNewDestination - this.currentSelection);
+            if (newCompensatingValue < 0 || newValue < 0) {
+              // Something went wrong in calculating. Perhaps we can try something different, but for now, just do nothing.
+
+            } else {
+              siteswap[this.currentSelection] = newValue;
+              siteswap[currentOriginOfNewDestination] = newCompensatingValue;
+            }
+          }
           this.currentSelection = -1;
           break;
-        default:
-          return;
       }
     }
     this.configService.setSiteswap(siteswap);
